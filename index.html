@@ -3,84 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinical Intelligence - Tri-Year Future</title>
+    <title>Package Availment - Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background-color: #020617; color: #f1f5f9; }
-        .glass-card { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
-        .glow-indigo { border: 1px solid rgba(99, 102, 241, 0.3); box-shadow: 0 0 20px rgba(99, 102, 241, 0.1); }
-        select { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; }
+        body { background-color: #0a0a0a; color: #f5f5f5; }
+        .glass-card { background: #111; border: 1px solid #222; border-radius: 16px; }
+        .glow-border { border: 1px solid rgba(99, 102, 241, 0.2); }
+        select { background: #1a1a1a !important; color: white !important; border: 1px solid #333 !important; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #312e81; border-radius: 10px; }
-        .sparkline-container { height: 40px; width: 100%; margin-top: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
-<body class="font-sans">
+<body class="font-sans antialiased">
 
-    <div id="loader" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center">
-        <div class="w-64 bg-slate-900 rounded-full h-1 mb-4 overflow-hidden"><div id="progressBar" class="bg-indigo-500 h-full w-0 shadow-[0_0_15px_#6366f1]"></div></div>
-        <p class="text-[10px] font-black tracking-widest text-indigo-400 uppercase">Synchronizing Live Stream</p>
+    <div id="loader" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center">
+        <div class="w-48 bg-neutral-900 h-1 mb-4 overflow-hidden rounded-full">
+            <div id="progressBar" class="bg-indigo-600 h-full w-0 shadow-[0_0_15px_#4f46e5]"></div>
+        </div>
+        <p class="text-[10px] font-bold tracking-[0.3em] text-neutral-500 uppercase">Synchronizing Records</p>
     </div>
 
-    <nav class="border-b border-slate-800 bg-slate-950/90 backdrop-blur-md px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center gap-2">
-            <div class="bg-indigo-600 p-1.5 rounded-lg shadow-lg"><i data-lucide="shield-check" class="text-white w-5 h-5"></i></div>
-            <h1 class="text-lg font-black uppercase tracking-tighter italic">Health<span class="text-indigo-500">Flux</span> Pro</h1>
+    <nav class="border-b border-neutral-900 bg-black/80 backdrop-blur-md px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="h-8 w-1 bg-indigo-600 rounded-full"></div>
+            <h1 class="text-sm font-black uppercase tracking-widest">Package <span class="text-neutral-500">Availment</span></h1>
         </div>
-        <div class="flex gap-2 text-slate-900">
+        <div class="flex gap-2">
             <select id="monthSlicer" class="rounded-lg px-4 py-2 text-xs font-bold outline-none"></select>
             <select id="catSlicer" class="rounded-lg px-4 py-2 text-xs font-bold outline-none"><option value="all">All Categories</option></select>
-            <button onclick="resetFilters()" class="bg-slate-800 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all">Reset</button>
+            <button onclick="resetFilters()" class="bg-neutral-900 hover:bg-neutral-800 text-white px-3 py-2 rounded-lg transition-all"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
         </div>
     </nav>
 
     <main class="p-6 max-w-[1600px] mx-auto space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="glass-card glow-indigo p-5 rounded-2xl">
-                <p id="labelYear3" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">---</p>
-                <h2 id="valYear3" class="text-2xl font-black mt-1">₱0</h2>
-                <div class="sparkline-container"><canvas id="spark3"></canvas></div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="glass-card glow-border p-6">
+                <p id="labelYear3" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Latest Year</p>
+                <h2 id="valYear3" class="text-3xl font-black mt-2">₱0</h2>
+                <p id="cenYear3" class="text-neutral-500 text-[10px] mt-1">0 Patients</p>
             </div>
-            <div class="glass-card p-5 rounded-2xl">
-                <p id="labelYear2" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">---</p>
-                <h2 id="valYear2" class="text-2xl font-black mt-1">₱0</h2>
-                <div class="sparkline-container"><canvas id="spark2"></canvas></div>
+            <div class="glass-card p-6">
+                <p id="labelYear2" class="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Previous Year</p>
+                <h2 id="valYear2" class="text-3xl font-black mt-2 text-neutral-400">₱0</h2>
+                <p id="cenYear2" class="text-neutral-500 text-[10px] mt-1">0 Patients</p>
             </div>
-            <div class="glass-card p-5 rounded-2xl opacity-80">
-                <p id="labelYear1" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">---</p>
-                <h2 id="valYear1" class="text-2xl font-black mt-1">₱0</h2>
-                <div class="sparkline-container"><canvas id="spark1"></canvas></div>
+            <div class="glass-card p-6 flex flex-col">
+                <p class="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-4">Tri-Year Benchmark</p>
+                <div class="flex-grow min-h-[50px]"><canvas id="sparkBarChart"></canvas></div>
+                <div id="sparkLabels" class="flex justify-between mt-2 text-[9px] font-bold text-neutral-600"></div>
             </div>
-            <div class="glass-card p-5 rounded-2xl flex flex-col justify-center border-l-4 border-indigo-500">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Growth Variance</p>
-                <h2 id="varRev" class="text-4xl font-black mt-1">0%</h2>
-                <p id="varContext" class="text-[9px] font-bold text-slate-500 mt-1 uppercase">Latest vs Previous Year</p>
+            <div class="glass-card p-6 border-l-4 border-indigo-600">
+                <p class="text-[10px] font-black text-neutral-500 uppercase tracking-widest">YoY Variance</p>
+                <h2 id="varRev" class="text-4xl font-black mt-2">0%</h2>
+                <p id="varContext" class="text-[9px] font-bold text-neutral-500 mt-1 uppercase">Latest vs Prev</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="glass-card p-6 rounded-2xl h-[300px]"><canvas id="revChart"></canvas></div>
-            <div class="glass-card p-6 rounded-2xl h-[300px]"><canvas id="cenChart"></canvas></div>
+            <div class="glass-card p-6 h-[300px]"><canvas id="revChart"></canvas></div>
+            <div class="glass-card p-6 h-[300px]"><canvas id="cenChart"></canvas></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="glass-card rounded-2xl overflow-hidden flex flex-col">
-                <div class="bg-slate-900/50 px-6 py-4 border-b border-slate-800 font-black text-[10px] uppercase tracking-[0.2em] text-indigo-400">Top 10 Packages (Revenue)</div>
-                <div id="topRevList" class="p-4 space-y-2 overflow-y-auto max-h-[400px] custom-scrollbar"></div>
+            <div class="glass-card overflow-hidden">
+                <div class="bg-neutral-900/50 px-6 py-4 border-b border-neutral-800 font-black text-[10px] uppercase tracking-widest text-indigo-400">Top 10 Packages (Revenue DESC)</div>
+                <div id="topRevList" class="p-4 space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar"></div>
             </div>
-            <div class="glass-card rounded-2xl overflow-hidden flex flex-col">
-                <div class="bg-slate-900/50 px-6 py-4 border-b border-slate-800 font-black text-[10px] uppercase tracking-[0.2em] text-cyan-400">Top 10 Packages (Census)</div>
-                <div id="topCenList" class="p-4 space-y-2 overflow-y-auto max-h-[400px] custom-scrollbar"></div>
+            <div class="glass-card overflow-hidden">
+                <div class="bg-neutral-900/50 px-6 py-4 border-b border-neutral-800 font-black text-[10px] uppercase tracking-widest text-neutral-400">Top 10 Packages (Census DESC)</div>
+                <div id="topCenList" class="p-4 space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar"></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
-            <div class="glass-card p-6 rounded-2xl h-[250px]"><canvas id="locChart"></canvas></div>
-            <div class="glass-card p-6 rounded-2xl h-[250px]"><canvas id="genChart"></canvas></div>
-            <div class="glass-card p-6 rounded-2xl h-[250px]"><canvas id="ageChart"></canvas></div>
+            <div class="glass-card p-6 h-[250px]"><canvas id="locChart"></canvas></div>
+            <div class="glass-card p-6 h-[250px]"><canvas id="genChart"></canvas></div>
+            <div class="glass-card p-6 h-[250px]"><canvas id="ageChart"></canvas></div>
         </div>
     </main>
 
@@ -90,6 +91,9 @@
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let masterData = [], charts = {}, maxYear;
+
+        Chart.defaults.color = '#737373';
+        Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
 
         async function init() {
             lucide.createIcons();
@@ -126,81 +130,84 @@
             const cVal = document.getElementById('catSlicer').value;
             const filtered = masterData.filter(d => (cVal === 'all' || d.category === cVal));
 
-            updateTriCards(mVal, filtered);
-            updateTrends(mVal, filtered);
+            updateCards(mVal, filtered);
+            updateDynamicTrends(mVal, filtered);
             updateTopLists(mVal, filtered);
-            updatePies(filtered);
+            updateDemographics(filtered);
         }
 
-        function updateTriCards(mVal, data) {
+        function updateCards(mVal, data) {
             const years = [maxYear - 2, maxYear - 1, maxYear];
             const stats = years.map(yr => {
                 const sub = mVal === "all" ? data.filter(d => d.y === yr) : data.filter(d => d.y === yr && d.m === parseInt(mVal));
-                return { yr, r: sub.reduce((s,d)=>s+d.amt,0), n: sub.length, data: sub };
+                return { yr, r: sub.reduce((s,d)=>s+d.amt,0), n: sub.length };
             });
 
-            // Update 3 Cards
-            stats.forEach((s, i) => {
-                const idx = i + 1;
-                document.getElementById(`labelYear${idx}`).textContent = `Year ${s.yr}`;
-                document.getElementById(`valYear${idx}`).textContent = `₱${s.r.toLocaleString()}`;
-                
-                // Mini Sparkline Logic
-                const sparkData = mVal === "all" 
-                    ? Array.from({length:12}, (_,m) => s.data.filter(d=>d.m===m).reduce((sum,d)=>sum+d.amt,0))
-                    : Array.from({length:31}, (_,d) => s.data.filter(x=>x.day===d+1).reduce((sum,x)=>sum+x.amt,0));
-                
-                drawSpark(`spark${idx}`, sparkData, idx === 3 ? '#6366f1' : '#475569');
-            });
+            // Set Card Values
+            document.getElementById('labelYear3').textContent = `Year ${stats[2].yr}`;
+            document.getElementById('valYear3').textContent = `₱${stats[2].r.toLocaleString()}`;
+            document.getElementById('cenYear3').textContent = `${stats[2].n} Patients`;
 
-            // YoY Variance (Latest Year vs Previous Year)
-            const latest = stats[2].r, prev = stats[1].r;
-            const diff = prev ? ((latest - prev) / prev * 100) : 0;
+            document.getElementById('labelYear2').textContent = `Year ${stats[1].yr}`;
+            document.getElementById('valYear2').textContent = `₱${stats[1].r.toLocaleString()}`;
+            document.getElementById('cenYear2').textContent = `${stats[1].n} Patients`;
+
+            // Variance
+            const diff = stats[1].r ? ((stats[2].r - stats[1].r) / stats[1].r * 100) : 0;
             const vEl = document.getElementById('varRev');
             vEl.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`;
-            vEl.className = `text-4xl font-black ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-            document.getElementById('varContext').textContent = `${years[2]} vs ${years[1]} Momentum`;
+            vEl.className = `text-4xl font-black mt-2 ${diff >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+            document.getElementById('varContext').textContent = `${stats[2].yr} VS ${stats[1].yr}`;
+
+            // Tri-Year Spark BAR Chart
+            drawSparkBar('sparkBarChart', stats.map(s => s.r));
+            document.getElementById('sparkLabels').innerHTML = years.map(y => `<span>${y}</span>`).join('');
         }
 
-        function updateTrends(mVal, data) {
-            let labels = [], datasetsRev = [], datasetsCen = [];
-            const years = [maxYear, maxYear - 1, maxYear - 2];
-            const colors = ['#6366f1', '#94a3b8', '#334155'];
-
+        function updateDynamicTrends(mVal, data) {
+            let labels = [], curSet = [], preSet = [];
             if (mVal === "all") {
                 labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                labels.forEach((_, i) => {
+                    const c = data.filter(d => d.y === maxYear && d.m === i);
+                    const p = data.filter(d => d.y === (maxYear-1) && d.m === i);
+                    curSet.push({ r: c.reduce((s,d)=>s+d.amt,0), n: c.length });
+                    preSet.push({ r: p.reduce((s,d)=>s+d.amt,0), n: p.length });
+                });
             } else {
-                const days = new Date(maxYear, parseInt(mVal) + 1, 0).getDate();
-                labels = Array.from({length: days}, (_, i) => `D${i+1}`);
+                const m = parseInt(mVal);
+                const days = new Date(maxYear, m + 1, 0).getDate();
+                for(let i=1; i<=days; i++) {
+                    labels.push(`Day ${i}`);
+                    const c = data.filter(d => d.y === maxYear && d.m === m && d.day === i);
+                    const p = data.filter(d => d.y === (maxYear-1) && d.m === m && d.day === i);
+                    curSet.push({ r: c.reduce((s,d)=>s+d.amt,0), n: c.length });
+                    preSet.push({ r: p.reduce((s,d)=>s+d.amt,0), n: p.length });
+                }
             }
 
-            years.forEach((yr, i) => {
-                const yearData = labels.map((_, idx) => {
-                    const sub = mVal === "all" 
-                        ? data.filter(d => d.y === yr && d.m === idx)
-                        : data.filter(d => d.y === yr && d.m === parseInt(mVal) && d.day === idx + 1);
-                    return { r: sub.reduce((s,d)=>s+d.amt,0), n: sub.length };
-                });
+            draw('revChart', 'line', labels, [
+                { label: `${maxYear} Revenue`, data: curSet.map(v=>v.r), borderColor: '#6366f1', tension: 0.4 },
+                { label: `${maxYear-1} Revenue`, data: preSet.map(v=>v.r), borderColor: '#333', borderDash: [5,5], tension: 0.4 }
+            ], 'Revenue Performance');
 
-                datasetsRev.push({ label: `${yr}`, data: yearData.map(v=>v.r), borderColor: colors[i], tension: 0.4, borderDash: i > 0 ? [5,5] : [] });
-                datasetsCen.push({ label: `${yr}`, data: yearData.map(v=>v.n), borderColor: colors[i], tension: 0.4, borderDash: i > 0 ? [5,5] : [] });
-            });
-
-            draw('revChart', 'line', labels, datasetsRev, 'Revenue Performance');
-            draw('cenChart', 'line', labels, datasetsCen, 'Patient Census');
+            draw('cenChart', 'line', labels, [
+                { label: `${maxYear} Census`, data: curSet.map(v=>v.n), borderColor: '#06b6d4', tension: 0.4 },
+                { label: `${maxYear-1} Census`, data: preSet.map(v=>v.n), borderColor: '#333', borderDash: [5,5], tension: 0.4 }
+            ], 'Patient Census');
         }
 
         function updateTopLists(mVal, data) {
-            const filtered = mVal === 'all' ? data.filter(d => d.y === maxYear) : data.filter(d => d.y === maxYear && d.m === parseInt(mVal));
+            const currentFiltered = mVal === 'all' ? data.filter(d => d.y === maxYear) : data.filter(d => d.y === maxYear && d.m === parseInt(mVal));
             const getGrp = (mode) => {
                 const d = {};
-                filtered.forEach(r => { const k = r.package_name || 'N/A'; d[k] = (d[k] || 0) + (mode === 'rev' ? r.amt : 1); });
+                currentFiltered.forEach(r => { const k = r.package_name || 'N/A'; d[k] = (d[k] || 0) + (mode === 'rev' ? r.amt : 1); });
                 return Object.entries(d).sort((a,b)=>b[1]-a[1]).slice(0, 10);
             }
             const build = (id, list, pre) => {
                 document.getElementById(id).innerHTML = list.map(([n,v], i) => `
-                    <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 transition-all">
-                        <span class="text-xs font-bold text-slate-300 truncate pr-2">#${i+1} ${n}</span>
+                    <div class="flex justify-between items-center p-3 rounded-xl bg-neutral-900/40 border border-neutral-800">
+                        <span class="text-xs font-bold text-neutral-300 truncate">#${i+1} ${n}</span>
                         <span class="text-xs font-black ${pre ? 'text-indigo-400' : 'text-cyan-400'}">${pre}${v.toLocaleString()}</span>
                     </div>`).join('');
             };
@@ -208,7 +215,7 @@
             build('topCenList', getGrp('cen'), '');
         }
 
-        function updatePies(data) {
+        function updateDemographics(data) {
             const grp = (k) => {
                 const o = {}; data.forEach(d => o[d[k]] = (o[d[k]] || 0) + 1);
                 const s = Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0, 5);
@@ -216,14 +223,15 @@
             };
             const l = grp('location'), g = grp('gender'), a = grp('age_bracket');
             draw('locChart', 'bar', l.k, [{ label: 'Patients', data: l.v, backgroundColor: '#4f46e5' }], 'Top Locations');
-            draw('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#6366f1', '#06b6d4', '#ec4899'] }], 'Gender');
+            draw('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#6366f1', '#06b6d4', '#ec4899'] }], 'Gender Split');
             draw('ageChart', 'pie', a.k, [{ data: a.v, backgroundColor: ['#10b981', '#f43f5e', '#3b82f6', '#f59e0b'] }], 'Age Brackets');
         }
 
-        function drawSpark(id, data, color) {
+        function drawSparkBar(id, data) {
             if (charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
-                type: 'line', data: { labels: data.map((_,i)=>i), datasets: [{ data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }] },
+                type: 'bar',
+                data: { labels: ['','',''], datasets: [{ data, backgroundColor: ['#222', '#444', '#6366f1'], barThickness: 20, borderRadius: 5 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
             });
         }
@@ -234,7 +242,7 @@
                 type, data: { labels, datasets },
                 options: { 
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } }, title: { display: !!title, text: title, color: '#f8fafc' } },
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, title: { display: !!title, text: title, color: '#f5f5f5' } },
                     scales: (type==='line'||type==='bar') ? { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } : {}
                 }
             });
