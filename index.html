@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinical Analytics - Smart Metrics</title>
+    <title>Clinical Analytics - YoY Comparison</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -11,61 +11,51 @@
 </head>
 <body class="bg-slate-50 text-slate-900">
 
-    <div id="loader" class="fixed inset-0 bg-indigo-900 z-[100] flex flex-col items-center justify-center text-white">
-        <div class="w-64 bg-indigo-800 rounded-full h-1.5 mb-4 overflow-hidden">
-            <div id="progressBar" class="bg-cyan-400 h-full w-0 transition-all duration-300"></div>
+    <div id="loader" class="fixed inset-0 bg-slate-900 z-[100] flex flex-col items-center justify-center text-white">
+        <div class="w-64 bg-slate-800 rounded-full h-1.5 mb-4 overflow-hidden">
+            <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
         </div>
-        <p class="text-sm font-bold tracking-widest uppercase" id="loadStatus">Initializing Stream...</p>
+        <p class="text-sm font-bold tracking-widest uppercase">Syncing 61,400+ Records...</p>
     </div>
 
-    <nav class="bg-white border-b border-slate-200 px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50">
+    <nav class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-50">
         <div class="flex items-center gap-2">
-            <div class="bg-indigo-600 p-1.5 rounded-lg"><i data-lucide="bar-chart-3" class="text-white w-5 h-5"></i></div>
-            <h1 class="text-lg font-black tracking-tight uppercase">Health<span class="text-indigo-600">Metric</span></h1>
+            <div class="bg-indigo-600 p-1.5 rounded-lg"><i data-lucide="activity" class="text-white w-5 h-5"></i></div>
+            <h1 class="text-lg font-black uppercase tracking-tight">Health<span class="text-indigo-600">Sync</span></h1>
         </div>
-        <div class="flex flex-wrap gap-2">
+        <div class="flex gap-2">
             <select id="monthSlicer" class="rounded-lg border border-slate-200 text-sm px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="all">All Months</option>
-                <option value="0">January</option><option value="1">February</option><option value="2">March</option>
-                <option value="3">April</option><option value="4">May</option><option value="5">June</option>
-                <option value="6">July</option><option value="7">August</option><option value="8">September</option>
-                <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+                <option value="all">Full Year Comparison</option>
+                <option value="0">January Only</option><option value="1">February Only</option><option value="2">March Only</option>
+                <option value="3">April Only</option><option value="4">May Only</option><option value="5">June Only</option>
+                <option value="6">July Only</option><option value="7">August Only</option><option value="8">September Only</option>
+                <option value="9">October Only</option><option value="10">November Only</option><option value="11">December Only</option>
             </select>
-            <select id="categorySlicer" class="rounded-lg border border-slate-200 text-sm px-4 py-2 outline-none"><option value="all">All Categories</option></select>
-            <select id="packageSlicer" class="rounded-lg border border-slate-200 text-sm px-4 py-2 outline-none"><option value="all">All Packages</option></select>
         </div>
     </nav>
 
     <main class="p-6 max-w-7xl mx-auto space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <p id="cardLabelCurr" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latest Period</p>
+                <p id="labelCurr" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latest Period</p>
                 <h2 id="currRev" class="text-4xl font-black mt-2 text-indigo-700">₱0</h2>
-                <p id="currCensus" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
+                <p id="currCen" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <p id="cardLabelPrev" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Previous Period</p>
+                <p id="labelPrev" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Previous Year Period</p>
                 <h2 id="prevRev" class="text-4xl font-black mt-2 text-slate-400">₱0</h2>
-                <p id="prevCensus" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
+                <p id="prevCen" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Growth Performance</p>
-                <div class="flex items-center gap-3 mt-2">
-                    <h2 id="varRev" class="text-4xl font-black">0%</h2>
-                </div>
-                <p id="varContext" class="text-slate-400 text-xs mt-1">Vs. Previous</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">YoY Performance</p>
+                <h2 id="varRev" class="text-4xl font-black mt-2">0%</h2>
+                <p class="text-slate-400 text-xs mt-1">Growth vs Same Month Last Year</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="revChart" height="160"></canvas></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="cenChart" height="160"></canvas></div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
-            <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="locChart"></canvas></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="genChart"></canvas></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="ageChart"></canvas></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="revChart"></canvas></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="cenChart"></canvas></div>
         </div>
     </main>
 
@@ -76,159 +66,112 @@
 
         let masterData = [];
         let charts = {};
-        let latestYearInDB = 0;
+        let latestYearInDB = 2025; // Default fallback
 
-        async function fetchAll() {
+        async function init() {
             lucide.createIcons();
-            let allRows = [];
-            let page = 0;
-            const step = 1000;
+            let rows = [];
+            let p = 0;
+            while (true) {
+                const { data, error } = await sb.from('database').select('*').range(p * 1000, (p + 1) * 1000 - 1);
+                if (error || !data || data.length === 0) break;
+                rows = [...rows, ...data];
+                p++;
+                document.getElementById('progressBar').style.width = `${Math.min((rows.length / 61400) * 100, 100)}%`;
+                if (data.length < 1000) break;
+            }
 
-            try {
-                while (true) {
-                    const { data, error } = await sb.from('database').select('*').range(page * step, (page + 1) * step - 1);
-                    if (error) throw error;
-                    if (!data || data.length === 0) break;
-                    allRows = [...allRows, ...data];
-                    page++;
-                    document.getElementById('progressBar').style.width = `${Math.min((allRows.length / 61400) * 100, 100)}%`;
-                    document.getElementById('loadStatus').textContent = `Syncing: ${allRows.length.toLocaleString()} rows`;
-                    if (data.length < step) break;
-                }
-
-                masterData = allRows.map(r => ({
+            masterData = rows.map(r => {
+                const d = new Date(r.date);
+                return {
                     ...r,
-                    date: new Date(r.date),
-                    amount: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0
-                })).filter(d => !isNaN(d.date.getTime()));
+                    // FORCE UTC to avoid 2026 timezone shifts
+                    y: d.getUTCFullYear(),
+                    m: d.getUTCMonth(),
+                    amt: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0
+                };
+            }).filter(d => !isNaN(d.y));
 
-                latestYearInDB = Math.max(...masterData.map(d => d.date.getFullYear()));
-                
-                document.getElementById('loader').classList.add('hidden');
-                initSlicers();
-                render();
-            } catch (e) { alert("Data fetch failed. Check connection."); }
-        }
+            latestYearInDB = Math.max(...masterData.map(d => d.y));
+            // Filter out any 2026 data if it somehow exists
+            if(latestYearInDB > 2025) latestYearInDB = 2025;
 
-        function initSlicers() {
-            const populate = (id, key) => {
-                const el = document.getElementById(id);
-                const items = [...new Set(masterData.map(d => d[key]))].sort();
-                items.forEach(i => { if(i) el.innerHTML += `<option value="${i}">${i}</option>`; });
-            };
-            populate('categorySlicer', 'category');
-            populate('packageSlicer', 'package_name');
-
-            ['monthSlicer', 'categorySlicer', 'packageSlicer'].forEach(id => {
-                document.getElementById(id).addEventListener('change', render);
-            });
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('monthSlicer').addEventListener('change', render);
+            render();
         }
 
         function render() {
-            const monthSel = document.getElementById('monthSlicer').value;
-            const catSel = document.getElementById('categorySlicer').value;
-            const packSel = document.getElementById('packageSlicer').value;
-
-            // Filter for charts/pies (Always shows current vs prev year)
-            const filtered = masterData.filter(d => {
-                return (catSel === 'all' || d.category === catSel) &&
-                       (packSel === 'all' || d.package_name === packSel);
-            });
-
-            updateCards(monthSel, filtered);
-            updateTrends(filtered);
-            updatePies(filtered);
+            const mSel = document.getElementById('monthSlicer').value;
+            updateCards(mSel);
+            updateCharts();
         }
 
-        function updateCards(monthSel, data) {
-            let curr = { rev: 0, cen: 0 }, prev = { rev: 0, cen: 0 };
-            let labelCurr = "", labelPrev = "";
+        function updateCards(mSel) {
+            let currData, prevData, labelC, labelP;
 
-            if (monthSel === "all") {
-                // Show Year vs Previous Year
-                const cY = data.filter(d => d.date.getFullYear() === latestYearInDB);
-                const pY = data.filter(d => d.date.getFullYear() === latestYearInDB - 1);
-                
-                curr = { rev: cY.reduce((s,d) => s + d.amount, 0), cen: cY.length };
-                prev = { rev: pY.reduce((s,d) => s + d.amount, 0), cen: pY.length };
-                labelCurr = `Full Year ${latestYearInDB}`;
-                labelPrev = `Full Year ${latestYearInDB - 1}`;
+            if (mSel === "all") {
+                currData = masterData.filter(d => d.y === latestYearInDB);
+                prevData = masterData.filter(d => d.y === latestYearInDB - 1);
+                labelC = `Total Year ${latestYearInDB}`;
+                labelP = `Total Year ${latestYearInDB - 1}`;
             } else {
-                // Show Month vs Previous Month
-                const m = parseInt(monthSel);
-                const cM = data.filter(d => d.date.getFullYear() === latestYearInDB && d.date.getMonth() === m);
-                
-                // Calculate previous month logic
-                let pm = m - 1, py = latestYearInDB;
-                if (pm < 0) { pm = 11; py--; }
-                const pM = data.filter(d => d.date.getFullYear() === py && d.date.getMonth() === pm);
-
-                curr = { rev: cM.reduce((s,d) => s + d.amount, 0), cen: cM.length };
-                prev = { rev: pM.reduce((s,d) => s + d.amount, 0), cen: pM.length };
-                
+                const m = parseInt(mSel);
+                currData = masterData.filter(d => d.y === latestYearInDB && d.m === m);
+                prevData = masterData.filter(d => d.y === latestYearInDB - 1 && d.m === m);
                 const mName = new Date(2000, m).toLocaleString('default', { month: 'long' });
-                const pmName = new Date(2000, pm).toLocaleString('default', { month: 'long' });
-                labelCurr = `${mName} ${latestYearInDB}`;
-                labelPrev = `${pmName} ${py}`;
+                labelC = `${mName} ${latestYearInDB}`;
+                labelP = `${mName} ${latestYearInDB - 1}`;
             }
 
-            document.getElementById('cardLabelCurr').textContent = labelCurr;
-            document.getElementById('cardLabelPrev').textContent = labelPrev;
-            document.getElementById('currRev').textContent = `₱${curr.rev.toLocaleString()}`;
-            document.getElementById('currCensus').textContent = `${curr.cen} Patients`;
-            document.getElementById('prevRev').textContent = `₱${prev.rev.toLocaleString()}`;
-            document.getElementById('prevCensus').textContent = `${prev.cen} Patients`;
+            const c = { r: currData.reduce((s,d)=>s+d.amt,0), n: currData.length };
+            const p = { r: prevData.reduce((s,d)=>s+d.amt,0), n: prevData.length };
 
-            const diff = prev.rev ? ((curr.rev - prev.rev) / prev.rev * 100) : 0;
+            document.getElementById('labelCurr').textContent = labelC;
+            document.getElementById('labelPrev').textContent = labelP;
+            document.getElementById('currRev').textContent = `₱${c.r.toLocaleString()}`;
+            document.getElementById('currCen').textContent = `${c.n} Patients`;
+            document.getElementById('prevRev').textContent = `₱${p.r.toLocaleString()}`;
+            document.getElementById('prevCen').textContent = `${p.n} Patients`;
+
+            const diff = p.r ? ((c.r - p.r) / p.r * 100) : 0;
             const vEl = document.getElementById('varRev');
             vEl.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`;
             vEl.className = `text-4xl font-black ${diff >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
         }
 
-        function updateTrends(data) {
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const cy = latestYearInDB, py = cy - 1;
+        function updateCharts() {
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const cy = latestYearInDB, py = latestYearInDB - 1;
 
-            const getSet = (y) => months.map((_, i) => {
-                const sub = data.filter(d => d.date.getFullYear() === y && d.date.getMonth() === i);
-                return { r: sub.reduce((s, d) => s + d.amount, 0), c: sub.length };
+            const getStats = (y) => months.map((_, i) => {
+                const sub = masterData.filter(d => d.y === y && d.m === i);
+                return { r: sub.reduce((s,d)=>s+d.amt,0), n: sub.length };
             });
 
-            const cData = getSet(cy), pData = getSet(py);
+            const cS = getStats(cy), pS = getStats(py);
 
-            drawChart('revChart', 'line', months, [
-                { label: `${cy} Revenue`, data: cData.map(v => v.r), borderColor: '#4f46e5', tension: 0.3, fill: true, backgroundColor: '#4f46e510' },
-                { label: `${py} Revenue`, data: pData.map(v => v.r), borderColor: '#cbd5e1', borderDash: [5,5], tension: 0.3 }
-            ], 'Revenue Performance');
+            draw('revChart', months, [
+                { label: `${cy} Revenue`, data: cS.map(v=>v.r), borderColor: '#4f46e5', tension: 0.3 },
+                { label: `${py} Revenue`, data: pS.map(v=>v.r), borderColor: '#cbd5e1', borderDash:[5,5], tension: 0.3 }
+            ], 'Revenue YoY');
 
-            drawChart('cenChart', 'line', months, [
-                { label: `${cy} Census`, data: cData.map(v => v.c), borderColor: '#06b6d4', tension: 0.3 },
-                { label: `${py} Census`, data: pData.map(v => v.c), borderColor: '#94a3b8', borderDash: [5,5], tension: 0.3 }
-            ], 'Patient Volume');
+            draw('cenChart', months, [
+                { label: `${cy} Census`, data: cS.map(v=>v.n), borderColor: '#06b6d4', tension: 0.3 },
+                { label: `${py} Census`, data: pS.map(v=>v.n), borderColor: '#cbd5e1', borderDash:[5,5], tension: 0.3 }
+            ], 'Census YoY');
         }
 
-        function updatePies(data) {
-            const grp = (key) => {
-                const o = {};
-                data.forEach(d => o[d[key]] = (o[d[key]] || 0) + 1);
-                const sorted = Object.entries(o).sort((a,b) => b[1]-a[1]).slice(0, 8);
-                return { k: sorted.map(x => x[0]), v: sorted.map(x => x[1]) };
-            };
-            const l = grp('location'), g = grp('gender'), a = grp('age_bracket');
-            drawChart('locChart', 'bar', l.k, [{ label: 'Patients', data: l.v, backgroundColor: '#6366f1' }], 'Top Locations');
-            drawChart('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#4f46e5', '#ec4899', '#f59e0b'] }], 'Gender');
-            drawChart('ageChart', 'pie', a.k, [{ data: a.v, backgroundColor: ['#10b981', '#f43f5e', '#3b82f6', '#f59e0b'] }], 'Age Groups');
-        }
-
-        function drawChart(id, type, labels, datasets, title) {
+        function draw(id, labels, datasets, title) {
             if (charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
-                type, data: { labels, datasets },
-                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } }, title: { display: !!title, text: title } } }
+                type: 'line',
+                data: { labels, datasets },
+                options: { responsive: true, plugins: { title: { display: true, text: title }, legend: { position: 'bottom' } } }
             });
         }
 
-        fetchAll();
+        init();
     </script>
 </body>
 </html>
