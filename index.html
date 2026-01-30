@@ -3,85 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinical Analytics - Premium Dark</title>
+    <title>Clinical Intelligence - Dynamic Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background-color: #0f172a; color: #f1f5f9; }
+        body { background-color: #020617; color: #f1f5f9; }
         .glass-card {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(15, 23, 42, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
-        .glow-indigo { box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); }
+        .glow-border { border: 1px solid rgba(99, 102, 241, 0.3); box-shadow: 0 0 20px rgba(99, 102, 241, 0.1); }
         select { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #312e81; border-radius: 10px; }
     </style>
 </head>
 <body class="font-sans">
 
     <div id="loader" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center">
         <div class="w-64 bg-slate-900 rounded-full h-1 mb-4 overflow-hidden">
-            <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300 shadow-[0_0_10px_#6366f1]"></div>
+            <div id="progressBar" class="bg-indigo-500 h-full w-0 shadow-[0_0_15px_#6366f1]"></div>
         </div>
-        <p class="text-[10px] font-bold tracking-[0.3em] uppercase text-indigo-400">Streaming 61,400+ Records</p>
+        <p class="text-[10px] font-black tracking-widest text-indigo-400 uppercase">Synchronizing 61.4k Rows</p>
     </div>
 
-    <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50">
+    <nav class="border-b border-slate-800 bg-slate-950/90 backdrop-blur-md px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50">
         <div class="flex items-center gap-2">
-            <div class="bg-indigo-600 p-1.5 rounded-lg shadow-[0_0_10px_#4f46e5]"><i data-lucide="activity" class="text-white w-5 h-5"></i></div>
-            <h1 class="text-lg font-black uppercase tracking-tight">Health<span class="text-indigo-400">Core</span></h1>
+            <div class="bg-indigo-600 p-1.5 rounded-lg shadow-lg"><i data-lucide="bar-chart-big" class="text-white w-5 h-5"></i></div>
+            <h1 class="text-lg font-black uppercase tracking-tighter italic">Health<span class="text-indigo-500">Flux</span></h1>
         </div>
         <div class="flex gap-2 text-slate-900">
             <select id="monthSlicer" class="rounded-lg px-4 py-2 text-xs font-bold outline-none"></select>
             <select id="catSlicer" class="rounded-lg px-4 py-2 text-xs font-bold outline-none"><option value="all">All Categories</option></select>
-            <button onclick="resetFilters()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all">Reset</button>
+            <button onclick="resetFilters()" class="bg-slate-800 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all">Reset</button>
         </div>
     </nav>
 
     <main class="p-6 max-w-[1600px] mx-auto space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="glass-card glow-indigo p-6 rounded-2xl">
-                <p id="labelCurr" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Latest Year</p>
+            <div class="glass-card glow-border p-6 rounded-2xl">
+                <p id="labelCurr" class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Latest Period</p>
                 <h2 id="currRev" class="text-4xl font-black mt-2 text-indigo-400">₱0</h2>
                 <p id="currCen" class="text-slate-400 text-sm font-bold">0 Patients</p>
             </div>
-            <div class="glass-card p-6 rounded-2xl border-l-4 border-slate-700">
-                <p id="labelPrev" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Previous Year</p>
-                <h2 id="prevRev" class="text-4xl font-black mt-2 text-slate-400">₱0</h2>
+            <div class="glass-card p-6 rounded-2xl">
+                <p id="labelPrev" class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Previous Year Period</p>
+                <h2 id="prevRev" class="text-4xl font-black mt-2 text-slate-500">₱0</h2>
                 <p id="prevCen" class="text-slate-400 text-sm font-bold">0 Patients</p>
             </div>
-            <div class="glass-card p-6 rounded-2xl">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">YoY Growth</p>
+            <div class="glass-card p-6 rounded-2xl border-l-4 border-indigo-500">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">YoY Variance</p>
                 <h2 id="varRev" class="text-4xl font-black mt-2">0%</h2>
-                <p class="text-slate-500 text-[10px] font-bold mt-1 uppercase">vs Same Period Last Year</p>
+                <p id="varContext" class="text-slate-500 text-[10px] font-bold mt-1 uppercase">Performance Delta</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="glass-card p-6 rounded-2xl"><canvas id="revChart" height="150"></canvas></div>
-            <div class="glass-card p-6 rounded-2xl"><canvas id="cenChart" height="150"></canvas></div>
+            <div class="glass-card p-6 rounded-2xl h-[300px]"><canvas id="revChart"></canvas></div>
+            <div class="glass-card p-6 rounded-2xl h-[300px]"><canvas id="cenChart"></canvas></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <div class="bg-slate-800/50 px-6 py-3 border-b border-slate-700 font-black text-[10px] uppercase tracking-widest text-indigo-400">Top 10 Packages (Revenue)</div>
-                <div id="topRevList" class="p-4 space-y-2 custom-scrollbar overflow-y-auto max-h-[350px]"></div>
+            <div class="glass-card rounded-2xl overflow-hidden flex flex-col">
+                <div class="bg-slate-900 px-6 py-4 border-b border-slate-800 font-black text-[10px] uppercase tracking-widest text-indigo-400">Top 10 Packages (Revenue DESC)</div>
+                <div id="topRevList" class="p-4 space-y-2 custom-scrollbar overflow-y-auto max-h-[400px]"></div>
             </div>
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <div class="bg-slate-800/50 px-6 py-3 border-b border-slate-700 font-black text-[10px] uppercase tracking-widest text-cyan-400">Top 10 Packages (Census)</div>
-                <div id="topCenList" class="p-4 space-y-2 custom-scrollbar overflow-y-auto max-h-[350px]"></div>
+            <div class="glass-card rounded-2xl overflow-hidden flex flex-col">
+                <div class="bg-slate-900 px-6 py-4 border-b border-slate-800 font-black text-[10px] uppercase tracking-widest text-cyan-400">Top 10 Packages (Census DESC)</div>
+                <div id="topCenList" class="p-4 space-y-2 custom-scrollbar overflow-y-auto max-h-[400px]"></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
-            <div class="glass-card p-6 rounded-2xl"><canvas id="locChart"></canvas></div>
-            <div class="glass-card p-6 rounded-2xl"><canvas id="genChart"></canvas></div>
-            <div class="glass-card p-6 rounded-2xl"><canvas id="ageChart"></canvas></div>
+            <div class="glass-card p-6 rounded-2xl h-[300px]"><canvas id="locChart"></canvas></div>
+            <div class="glass-card p-6 rounded-2xl h-[300px]"><canvas id="genChart"></canvas></div>
+            <div class="glass-card p-6 rounded-2xl h-[300px]"><canvas id="ageChart"></canvas></div>
         </div>
     </main>
 
@@ -92,14 +92,15 @@
 
         let masterData = [];
         let charts = {};
-        let latestYearInDB = 2025;
+        const cy = 2025;
+        const py = 2024;
 
-        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.color = '#64748b';
         Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
 
         async function init() {
             lucide.createIcons();
-            let rows = []; let p = 0;
+            let rows = [], p = 0;
             while (true) {
                 const { data, error } = await sb.from('database').select('*').range(p * 1000, (p + 1) * 1000 - 1);
                 if (error || !data || data.length === 0) break;
@@ -113,10 +114,11 @@
                 return { 
                     ...r, 
                     y: d.getUTCFullYear(), 
-                    m: d.getUTCMonth(), 
+                    m: d.getUTCMonth(),
+                    day: d.getUTCDate(),
                     amt: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0 
                 };
-            }).filter(d => !isNaN(d.y) && d.y <= 2025);
+            }).filter(d => d.y <= cy);
 
             document.getElementById('loader').classList.add('hidden');
             
@@ -143,24 +145,22 @@
             const filtered = masterData.filter(d => (cVal === 'all' || d.category === cVal));
 
             updateMetrics(mVal, filtered);
-            updateTrends(filtered);
-            updateTopLists(filtered);
+            updateDynamicTrends(mVal, filtered);
+            updateTopLists(mVal, filtered);
             updatePies(filtered);
         }
 
         function updateMetrics(mVal, data) {
-            const py = latestYearInDB - 1;
             let curD, preD, lblC, lblP;
-
             if (mVal === "all") {
-                curD = data.filter(d => d.y === latestYearInDB); preD = data.filter(d => d.y === py);
-                lblC = `Full Year ${latestYearInDB}`; lblP = `Full Year ${py}`;
+                curD = data.filter(d => d.y === cy); preD = data.filter(d => d.y === py);
+                lblC = `Total ${cy}`; lblP = `Total ${py}`;
             } else {
                 const m = parseInt(mVal);
-                curD = data.filter(d => d.y === latestYearInDB && d.m === m);
+                curD = data.filter(d => d.y === cy && d.m === m);
                 preD = data.filter(d => d.y === py && d.m === m);
-                lblC = `${new Date(2000,m).toLocaleString('default',{month:'long'})} ${latestYearInDB}`;
-                lblP = `${new Date(2000,m).toLocaleString('default',{month:'long'})} ${py}`;
+                const name = new Date(2000, m).toLocaleString('default', { month: 'long' });
+                lblC = `${name} ${cy}`; lblP = `${name} ${py}`;
             }
 
             const c = { r: curD.reduce((s,d)=>s+d.amt,0), n: curD.length };
@@ -179,53 +179,68 @@
             vEl.className = `text-4xl font-black ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
         }
 
-        function updateTrends(data) {
-            const mLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            const getS = (y) => mLabels.map((_, i) => {
-                const sub = data.filter(d => d.y === y && d.m === i);
-                return { r: sub.reduce((s,d)=>s+d.amt,0), n: sub.length };
-            });
-            const cS = getS(2025), pS = getS(2024);
+        function updateDynamicTrends(mVal, data) {
+            let labels = [], curSet = [], preSet = [];
+            
+            if (mVal === "all") {
+                labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                labels.forEach((_, i) => {
+                    const c = data.filter(d => d.y === cy && d.m === i);
+                    const p = data.filter(d => d.y === py && d.m === i);
+                    curSet.push({ r: c.reduce((s,d)=>s+d.amt,0), n: c.length });
+                    preSet.push({ r: p.reduce((s,d)=>s+d.amt,0), n: p.length });
+                });
+            } else {
+                const m = parseInt(mVal);
+                const daysInMonth = new Date(cy, m + 1, 0).getDate();
+                for(let i=1; i<=daysInMonth; i++) {
+                    labels.push(`Day ${i}`);
+                    const c = data.filter(d => d.y === cy && d.m === m && d.day === i);
+                    const p = data.filter(d => d.y === py && d.m === m && d.day === i);
+                    curSet.push({ r: c.reduce((s,d)=>s+d.amt,0), n: c.length });
+                    preSet.push({ r: p.reduce((s,d)=>s+d.amt,0), n: p.length });
+                }
+            }
 
-            drawChart('revChart', 'line', mLabels, [
-                { label: '2025 Revenue', data: cS.map(v=>v.r), borderColor: '#6366f1', tension: 0.3 },
-                { label: '2024 Revenue', data: pS.map(v=>v.r), borderColor: '#475569', borderDash:[5,5], tension: 0.3 }
-            ], 'Revenue Performance');
+            drawChart('revChart', 'line', labels, [
+                { label: `${cy} Revenue`, data: curSet.map(v=>v.r), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.4 },
+                { label: `${py} Revenue`, data: preSet.map(v=>v.r), borderColor: '#334155', borderDash: [4,4], tension: 0.4 }
+            ], 'Revenue Trend');
 
-            drawChart('cenChart', 'line', mLabels, [
-                { label: '2025 Census', data: cS.map(v=>v.n), borderColor: '#06b6d4', tension: 0.3 },
-                { label: '2024 Census', data: pS.map(v=>v.n), borderColor: '#475569', borderDash:[5,5], tension: 0.3 }
-            ], 'Patient Census');
+            drawChart('cenChart', 'line', labels, [
+                { label: `${cy} Census`, data: curSet.map(v=>v.n), borderColor: '#06b6d4', tension: 0.4 },
+                { label: `${py} Census`, data: preSet.map(v=>v.n), borderColor: '#334155', borderDash: [4,4], tension: 0.4 }
+            ], 'Census Trend');
         }
 
-        function updateTopLists(data) {
-            const getGrp = (mode) => {
-                const dict = {};
-                data.forEach(d => {
-                    const k = d.package_name || 'Others';
-                    dict[k] = (dict[k] || 0) + (mode === 'rev' ? d.amt : 1);
+        function updateTopLists(mVal, data) {
+            const m = mVal === 'all' ? null : parseInt(mVal);
+            const filtered = m === null ? data.filter(d => d.y === cy) : data.filter(d => d.y === cy && d.m === m);
+
+            const getTop = (mode) => {
+                const d = {};
+                filtered.forEach(r => {
+                    const k = r.package_name || 'N/A';
+                    d[k] = (d[k] || 0) + (mode === 'rev' ? r.amt : 1);
                 });
-                return Object.entries(dict).sort((a,b)=>b[1]-a[1]).slice(0,10);
+                return Object.entries(d).sort((a,b) => b[1]-a[1]).slice(0, 10);
             };
 
-            const revList = getGrp('rev');
-            const cenList = getGrp('cen');
-
-            const buildUI = (elId, list, prefix) => {
-                const el = document.getElementById(elId);
+            const buildList = (id, list, prefix) => {
+                const el = document.getElementById(id);
                 el.innerHTML = list.map(([name, val], i) => `
-                    <div class="flex justify-between items-center p-3 rounded-lg bg-slate-800/30 border border-slate-700/50 hover:border-slate-500 transition-all">
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-bold text-slate-500">#${i+1}</span>
-                            <span class="text-xs font-bold text-slate-200 truncate max-w-[200px]">${name}</span>
+                    <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/50 transition-all">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="text-indigo-500 font-black text-[10px]">#${i+1}</span>
+                            <span class="text-xs font-bold text-slate-300 truncate">${name}</span>
                         </div>
-                        <span class="text-xs font-black ${prefix === '₱' ? 'text-indigo-400' : 'text-cyan-400'}">${prefix}${val.toLocaleString()}</span>
+                        <span class="text-xs font-black ${prefix ? 'text-indigo-400' : 'text-cyan-400'} whitespace-nowrap ml-4">${prefix}${val.toLocaleString()}</span>
                     </div>
                 `).join('');
             };
 
-            buildUI('topRevList', revList, '₱');
-            buildUI('topCenList', cenList, '');
+            buildList('topRevList', getTop('rev'), '₱');
+            buildList('topCenList', getTop('cen'), '');
         }
 
         function updatePies(data) {
@@ -248,9 +263,9 @@
                     responsive: true, maintainAspectRatio: false,
                     plugins: { 
                         legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
-                        title: { display: !!title, text: title, color: '#f8fafc' }
+                        title: { display: !!title, text: title, color: '#f8fafc', font: { weight: 'bold' } }
                     },
-                    scales: type === 'line' || type === 'bar' ? {
+                    scales: (type === 'line' || type === 'bar') ? {
                         y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { font: { size: 10 } } },
                         x: { grid: { display: false }, ticks: { font: { size: 10 } } }
                     } : {}
