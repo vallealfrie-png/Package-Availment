@@ -3,66 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Health Dashboard</title>
+    <title>Clinical Analytics - Smart Metrics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-100 text-slate-900 font-sans">
+<body class="bg-slate-50 text-slate-900">
 
-    <div id="loader" class="fixed inset-0 bg-slate-900/90 z-[100] flex flex-col items-center justify-center text-white">
-        <div class="w-64 bg-slate-700 rounded-full h-2 mb-4 overflow-hidden">
-            <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
+    <div id="loader" class="fixed inset-0 bg-indigo-900 z-[100] flex flex-col items-center justify-center text-white">
+        <div class="w-64 bg-indigo-800 rounded-full h-1.5 mb-4 overflow-hidden">
+            <div id="progressBar" class="bg-cyan-400 h-full w-0 transition-all duration-300"></div>
         </div>
-        <p class="text-lg font-bold animate-pulse">Fetching 61,400+ Records...</p>
-        <p id="loadStatus" class="text-slate-400 text-sm mt-2">Page 0 of 614</p>
+        <p class="text-sm font-bold tracking-widest uppercase" id="loadStatus">Initializing Stream...</p>
     </div>
 
-    <nav class="bg-indigo-900 text-white px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50 shadow-xl">
-        <div class="flex items-center gap-3">
-            <i data-lucide="activity" class="text-indigo-400"></i>
-            <h1 class="text-xl font-black tracking-tighter uppercase">Clinical <span class="text-indigo-300">DataHub</span></h1>
+    <nav class="bg-white border-b border-slate-200 px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-2">
+            <div class="bg-indigo-600 p-1.5 rounded-lg"><i data-lucide="bar-chart-3" class="text-white w-5 h-5"></i></div>
+            <h1 class="text-lg font-black tracking-tight uppercase">Health<span class="text-indigo-600">Metric</span></h1>
         </div>
-        <div class="flex flex-wrap gap-2 text-slate-900">
-            <select id="monthSlicer" class="rounded px-3 py-2 text-xs font-bold uppercase outline-none"><option value="all">All Months</option></select>
-            <select id="categorySlicer" class="rounded px-3 py-2 text-xs font-bold uppercase outline-none"><option value="all">All Categories</option></select>
-            <select id="packageSlicer" class="rounded px-3 py-2 text-xs font-bold uppercase outline-none"><option value="all">All Packages</option></select>
+        <div class="flex flex-wrap gap-2">
+            <select id="monthSlicer" class="rounded-lg border border-slate-200 text-sm px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">All Months</option>
+                <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+                <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+                <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+                <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+            </select>
+            <select id="categorySlicer" class="rounded-lg border border-slate-200 text-sm px-4 py-2 outline-none"><option value="all">All Categories</option></select>
+            <select id="packageSlicer" class="rounded-lg border border-slate-200 text-sm px-4 py-2 outline-none"><option value="all">All Packages</option></select>
         </div>
     </nav>
 
-    <main class="p-6 max-w-[1600px] mx-auto space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-indigo-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Revenue</p>
-                <h2 id="totalRev" class="text-3xl font-black mt-1">₱0</h2>
+    <main class="p-6 max-w-7xl mx-auto space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p id="cardLabelCurr" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latest Period</p>
+                <h2 id="currRev" class="text-4xl font-black mt-2 text-indigo-700">₱0</h2>
+                <p id="currCensus" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-cyan-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Census</p>
-                <h2 id="totalCen" class="text-3xl font-black mt-1">0</h2>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p id="cardLabelPrev" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Previous Period</p>
+                <h2 id="prevRev" class="text-4xl font-black mt-2 text-slate-400">₱0</h2>
+                <p id="prevCensus" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-emerald-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg Transaction</p>
-                <h2 id="avgTrans" class="text-3xl font-black mt-1">₱0</h2>
-            </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-amber-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Records Loaded</p>
-                <h2 id="recCount" class="text-3xl font-black mt-1">0</h2>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Growth Performance</p>
+                <div class="flex items-center gap-3 mt-2">
+                    <h2 id="varRev" class="text-4xl font-black">0%</h2>
+                </div>
+                <p id="varContext" class="text-slate-400 text-xs mt-1">Vs. Previous</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 class="font-bold text-slate-500 text-xs uppercase mb-4">Revenue Trend (2024 vs 2025)</h3>
-                <canvas id="revChart" height="150"></canvas>
-            </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 class="font-bold text-slate-500 text-xs uppercase mb-4">Census Trend (2024 vs 2025)</h3>
-                <canvas id="cenChart" height="150"></canvas>
-            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="revChart" height="160"></canvas></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="cenChart" height="160"></canvas></div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
             <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="locChart"></canvas></div>
             <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="genChart"></canvas></div>
             <div class="bg-white p-6 rounded-2xl shadow-sm"><canvas id="ageChart"></canvas></div>
@@ -76,72 +76,48 @@
 
         let masterData = [];
         let charts = {};
+        let latestYearInDB = 0;
 
-        const getMoYr = (d) => d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-
-        async function loadAllData() {
+        async function fetchAll() {
             lucide.createIcons();
             let allRows = [];
             let page = 0;
-            const pageSize = 1000; // Fetching 1000 at a time is faster than 100
-            const totalExpectedPages = 62; // 61,400 / 1000
+            const step = 1000;
 
             try {
                 while (true) {
-                    const { data, error } = await sb
-                        .from('database')
-                        .select('*')
-                        .range(page * pageSize, (page + 1) * pageSize - 1);
-
+                    const { data, error } = await sb.from('database').select('*').range(page * step, (page + 1) * step - 1);
                     if (error) throw error;
                     if (!data || data.length === 0) break;
-
                     allRows = [...allRows, ...data];
-                    
-                    // Update UI Progress
                     page++;
-                    const progress = Math.min((page / totalExpectedPages) * 100, 100);
-                    document.getElementById('progressBar').style.width = `${progress}%`;
-                    document.getElementById('loadStatus').textContent = `Loaded ${allRows.length.toLocaleString()} records...`;
-
-                    if (data.length < pageSize) break;
+                    document.getElementById('progressBar').style.width = `${Math.min((allRows.length / 61400) * 100, 100)}%`;
+                    document.getElementById('loadStatus').textContent = `Syncing: ${allRows.length.toLocaleString()} rows`;
+                    if (data.length < step) break;
                 }
 
-                masterData = allRows.map(r => {
-                    const d = new Date(r.date);
-                    return {
-                        ...r,
-                        date: d,
-                        moYr: getMoYr(d),
-                        amount: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0
-                    };
-                }).filter(d => !isNaN(d.date.getTime()));
+                masterData = allRows.map(r => ({
+                    ...r,
+                    date: new Date(r.date),
+                    amount: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0
+                })).filter(d => !isNaN(d.date.getTime()));
 
+                latestYearInDB = Math.max(...masterData.map(d => d.date.getFullYear()));
+                
                 document.getElementById('loader').classList.add('hidden');
-                setupSlicers();
+                initSlicers();
                 render();
-
-            } catch (err) {
-                console.error("Critical Load Error:", err);
-                alert("Error loading data. See console.");
-            }
+            } catch (e) { alert("Data fetch failed. Check connection."); }
         }
 
-        function setupSlicers() {
-            const populate = (id, items) => {
+        function initSlicers() {
+            const populate = (id, key) => {
                 const el = document.getElementById(id);
-                el.innerHTML = `<option value="all">All ${id.replace('Slicer','')}</option>`;
-                items.forEach(i => {
-                    const opt = document.createElement('option');
-                    opt.value = opt.textContent = i;
-                    el.appendChild(opt);
-                });
+                const items = [...new Set(masterData.map(d => d[key]))].sort();
+                items.forEach(i => { if(i) el.innerHTML += `<option value="${i}">${i}</option>`; });
             };
-
-            const months = [...new Set(masterData.map(d => d.moYr))].sort((a,b) => new Date(a) - new Date(b));
-            populate('monthSlicer', months);
-            populate('categorySlicer', [...new Set(masterData.map(d => d.category))].sort());
-            populate('packageSlicer', [...new Set(masterData.map(d => d.package_name))].sort());
+            populate('categorySlicer', 'category');
+            populate('packageSlicer', 'package_name');
 
             ['monthSlicer', 'categorySlicer', 'packageSlicer'].forEach(id => {
                 document.getElementById(id).addEventListener('change', render);
@@ -149,75 +125,110 @@
         }
 
         function render() {
-            const f = {
-                m: document.getElementById('monthSlicer').value,
-                c: document.getElementById('categorySlicer').value,
-                p: document.getElementById('packageSlicer').value
-            };
+            const monthSel = document.getElementById('monthSlicer').value;
+            const catSel = document.getElementById('categorySlicer').value;
+            const packSel = document.getElementById('packageSlicer').value;
 
+            // Filter for charts/pies (Always shows current vs prev year)
             const filtered = masterData.filter(d => {
-                return (f.m === 'all' || d.moYr === f.m) &&
-                       (f.c === 'all' || d.category === f.c) &&
-                       (f.p === 'all' || d.package_name === f.p);
+                return (catSel === 'all' || d.category === catSel) &&
+                       (packSel === 'all' || d.package_name === packSel);
             });
 
-            // Update Cards
-            const totalRev = filtered.reduce((s, d) => s + d.amount, 0);
-            document.getElementById('totalRev').textContent = `₱${totalRev.toLocaleString()}`;
-            document.getElementById('totalCen').textContent = filtered.length.toLocaleString();
-            document.getElementById('avgTrans').textContent = `₱${(totalRev / (filtered.length || 1)).toLocaleString(undefined, {maximumFractionDigits:0})}`;
-            document.getElementById('recCount').textContent = filtered.length.toLocaleString();
-
-            updateCharts(filtered);
+            updateCards(monthSel, filtered);
+            updateTrends(filtered);
+            updatePies(filtered);
         }
 
-        function updateCharts(data) {
+        function updateCards(monthSel, data) {
+            let curr = { rev: 0, cen: 0 }, prev = { rev: 0, cen: 0 };
+            let labelCurr = "", labelPrev = "";
+
+            if (monthSel === "all") {
+                // Show Year vs Previous Year
+                const cY = data.filter(d => d.date.getFullYear() === latestYearInDB);
+                const pY = data.filter(d => d.date.getFullYear() === latestYearInDB - 1);
+                
+                curr = { rev: cY.reduce((s,d) => s + d.amount, 0), cen: cY.length };
+                prev = { rev: pY.reduce((s,d) => s + d.amount, 0), cen: pY.length };
+                labelCurr = `Full Year ${latestYearInDB}`;
+                labelPrev = `Full Year ${latestYearInDB - 1}`;
+            } else {
+                // Show Month vs Previous Month
+                const m = parseInt(monthSel);
+                const cM = data.filter(d => d.date.getFullYear() === latestYearInDB && d.date.getMonth() === m);
+                
+                // Calculate previous month logic
+                let pm = m - 1, py = latestYearInDB;
+                if (pm < 0) { pm = 11; py--; }
+                const pM = data.filter(d => d.date.getFullYear() === py && d.date.getMonth() === pm);
+
+                curr = { rev: cM.reduce((s,d) => s + d.amount, 0), cen: cM.length };
+                prev = { rev: pM.reduce((s,d) => s + d.amount, 0), cen: pM.length };
+                
+                const mName = new Date(2000, m).toLocaleString('default', { month: 'long' });
+                const pmName = new Date(2000, pm).toLocaleString('default', { month: 'long' });
+                labelCurr = `${mName} ${latestYearInDB}`;
+                labelPrev = `${pmName} ${py}`;
+            }
+
+            document.getElementById('cardLabelCurr').textContent = labelCurr;
+            document.getElementById('cardLabelPrev').textContent = labelPrev;
+            document.getElementById('currRev').textContent = `₱${curr.rev.toLocaleString()}`;
+            document.getElementById('currCensus').textContent = `${curr.cen} Patients`;
+            document.getElementById('prevRev').textContent = `₱${prev.rev.toLocaleString()}`;
+            document.getElementById('prevCensus').textContent = `${prev.cen} Patients`;
+
+            const diff = prev.rev ? ((curr.rev - prev.rev) / prev.rev * 100) : 0;
+            const vEl = document.getElementById('varRev');
+            vEl.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`;
+            vEl.className = `text-4xl font-black ${diff >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+        }
+
+        function updateTrends(data) {
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const yrs = [...new Set(masterData.map(d => d.date.getFullYear()))].sort((a,b) => b-a);
-            const cy = yrs[0] || 2025, py = yrs[1] || 2024;
+            const cy = latestYearInDB, py = cy - 1;
 
             const getSet = (y) => months.map((_, i) => {
                 const sub = data.filter(d => d.date.getFullYear() === y && d.date.getMonth() === i);
                 return { r: sub.reduce((s, d) => s + d.amount, 0), c: sub.length };
             });
 
-            const cSet = getSet(cy), pSet = getSet(py);
+            const cData = getSet(cy), pData = getSet(py);
 
-            draw('revChart', 'line', months, [
-                { label: `${cy} Revenue`, data: cSet.map(v => v.r), borderColor: '#6366f1', backgroundColor: '#6366f122', fill: true, tension: 0.3 },
-                { label: `${py} Revenue`, data: pSet.map(v => v.r), borderColor: '#cbd5e1', borderDash: [5,5], tension: 0.3 }
-            ]);
+            drawChart('revChart', 'line', months, [
+                { label: `${cy} Revenue`, data: cData.map(v => v.r), borderColor: '#4f46e5', tension: 0.3, fill: true, backgroundColor: '#4f46e510' },
+                { label: `${py} Revenue`, data: pData.map(v => v.r), borderColor: '#cbd5e1', borderDash: [5,5], tension: 0.3 }
+            ], 'Revenue Performance');
 
-            draw('cenChart', 'line', months, [
-                { label: `${cy} Census`, data: cSet.map(v => v.c), borderColor: '#06b6d4', tension: 0.3 },
-                { label: `${py} Census`, data: pSet.map(v => v.c), borderColor: '#cbd5e1', borderDash: [5,5], tension: 0.3 }
-            ]);
+            drawChart('cenChart', 'line', months, [
+                { label: `${cy} Census`, data: cData.map(v => v.c), borderColor: '#06b6d4', tension: 0.3 },
+                { label: `${py} Census`, data: pData.map(v => v.c), borderColor: '#94a3b8', borderDash: [5,5], tension: 0.3 }
+            ], 'Patient Volume');
+        }
 
+        function updatePies(data) {
             const grp = (key) => {
                 const o = {};
                 data.forEach(d => o[d[key]] = (o[d[key]] || 0) + 1);
-                const sorted = Object.entries(o).sort((a,b) => b[1] - a[1]).slice(0, 10);
+                const sorted = Object.entries(o).sort((a,b) => b[1]-a[1]).slice(0, 8);
                 return { k: sorted.map(x => x[0]), v: sorted.map(x => x[1]) };
             };
-
             const l = grp('location'), g = grp('gender'), a = grp('age_bracket');
-            draw('locChart', 'bar', l.k, [{ label: 'Patients', data: l.v, backgroundColor: '#818cf8' }], 'Top Locations');
-            draw('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#6366f1', '#f472b6', '#fbbf24'] }], 'Gender');
-            draw('ageChart', 'pie', a.k, [{ data: a.v, backgroundColor: ['#2dd4bf', '#fb7185', '#38bdf8', '#fbbf24'] }], 'Age Groups');
+            drawChart('locChart', 'bar', l.k, [{ label: 'Patients', data: l.v, backgroundColor: '#6366f1' }], 'Top Locations');
+            drawChart('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#4f46e5', '#ec4899', '#f59e0b'] }], 'Gender');
+            drawChart('ageChart', 'pie', a.k, [{ data: a.v, backgroundColor: ['#10b981', '#f43f5e', '#3b82f6', '#f59e0b'] }], 'Age Groups');
         }
 
-        function draw(id, type, labels, datasets, title) {
+        function drawChart(id, type, labels, datasets, title) {
             if (charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
                 type, data: { labels, datasets },
-                options: { 
-                    responsive: true, 
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, title: { display: !!title, text: title } }
-                }
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } }, title: { display: !!title, text: title } } }
             });
         }
 
-        loadAllData();
+        fetchAll();
     </script>
 </body>
 </html>
