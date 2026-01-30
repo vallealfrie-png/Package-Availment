@@ -3,59 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinical Analytics - YoY Comparison</title>
+    <title>Clinical Analytics - Age Bracket YoY</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-50 text-slate-900 font-sans">
 
     <div id="loader" class="fixed inset-0 bg-slate-900 z-[100] flex flex-col items-center justify-center text-white">
         <div class="w-64 bg-slate-800 rounded-full h-1.5 mb-4 overflow-hidden">
             <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
         </div>
-        <p class="text-sm font-bold tracking-widest uppercase">Syncing 61,400+ Records...</p>
+        <p class="text-sm font-bold tracking-widest uppercase" id="loadStatus">Syncing Records...</p>
     </div>
 
-    <nav class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+    <nav class="bg-indigo-900 text-white px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50 shadow-xl">
         <div class="flex items-center gap-2">
-            <div class="bg-indigo-600 p-1.5 rounded-lg"><i data-lucide="activity" class="text-white w-5 h-5"></i></div>
-            <h1 class="text-lg font-black uppercase tracking-tight">Health<span class="text-indigo-600">Sync</span></h1>
+            <i data-lucide="activity" class="text-indigo-400"></i>
+            <h1 class="text-lg font-black uppercase tracking-tight">Health<span class="text-indigo-300">Sync</span></h1>
         </div>
-        <div class="flex gap-2">
-            <select id="monthSlicer" class="rounded-lg border border-slate-200 text-sm px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
+        <div class="flex flex-wrap gap-2 text-slate-900">
+            <select id="monthSlicer" class="rounded-lg px-3 py-2 text-sm font-bold outline-none">
                 <option value="all">Full Year Comparison</option>
                 <option value="0">January Only</option><option value="1">February Only</option><option value="2">March Only</option>
                 <option value="3">April Only</option><option value="4">May Only</option><option value="5">June Only</option>
                 <option value="6">July Only</option><option value="7">August Only</option><option value="8">September Only</option>
                 <option value="9">October Only</option><option value="10">November Only</option><option value="11">December Only</option>
             </select>
+            <select id="catSlicer" class="rounded-lg px-3 py-2 text-sm font-bold outline-none"><option value="all">All Categories</option></select>
+            <select id="packSlicer" class="rounded-lg px-3 py-2 text-sm font-bold outline-none"><option value="all">All Packages</option></select>
+            <button onclick="resetFilters()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+                <i data-lucide="refresh-ccw" class="w-4 h-4"></i> Reset
+            </button>
         </div>
     </nav>
 
-    <main class="p-6 max-w-7xl mx-auto space-y-6">
+    <main class="p-6 max-w-[1600px] mx-auto space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <p id="labelCurr" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latest Period</p>
+                <p id="labelCurr" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latest Year</p>
                 <h2 id="currRev" class="text-4xl font-black mt-2 text-indigo-700">₱0</h2>
-                <p id="currCen" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
+                <p id="currCen" class="text-slate-500 text-sm font-bold">0 Patients</p>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <p id="labelPrev" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Previous Year Period</p>
+                <p id="labelPrev" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Previous Year</p>
                 <h2 id="prevRev" class="text-4xl font-black mt-2 text-slate-400">₱0</h2>
-                <p id="prevCen" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
+                <p id="prevCen" class="text-slate-500 text-sm font-bold">0 Patients</p>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">YoY Performance</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">YoY Variance</p>
                 <h2 id="varRev" class="text-4xl font-black mt-2">0%</h2>
-                <p class="text-slate-400 text-xs mt-1">Growth vs Same Month Last Year</p>
+                <p class="text-slate-400 text-xs font-medium italic">Growth vs Same Period Last Year</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="revChart"></canvas></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="cenChart"></canvas></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="revChart" height="150"></canvas></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="cenChart" height="150"></canvas></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="locChart"></canvas></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="genChart"></canvas></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="ageChart"></canvas></div>
         </div>
     </main>
 
@@ -66,69 +77,100 @@
 
         let masterData = [];
         let charts = {};
-        let latestYearInDB = 2025; // Default fallback
+        let latestYearInDB = 2025;
 
         async function init() {
             lucide.createIcons();
             let rows = [];
             let p = 0;
-            while (true) {
-                const { data, error } = await sb.from('database').select('*').range(p * 1000, (p + 1) * 1000 - 1);
-                if (error || !data || data.length === 0) break;
-                rows = [...rows, ...data];
-                p++;
-                document.getElementById('progressBar').style.width = `${Math.min((rows.length / 61400) * 100, 100)}%`;
-                if (data.length < 1000) break;
-            }
+            const pageSize = 1000;
 
-            masterData = rows.map(r => {
-                const d = new Date(r.date);
-                return {
-                    ...r,
-                    // FORCE UTC to avoid 2026 timezone shifts
-                    y: d.getUTCFullYear(),
-                    m: d.getUTCMonth(),
-                    amt: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0
-                };
-            }).filter(d => !isNaN(d.y));
+            try {
+                while (true) {
+                    const { data, error } = await sb.from('database').select('*').range(p * pageSize, (p + 1) * pageSize - 1);
+                    if (error || !data || data.length === 0) break;
+                    rows = [...rows, ...data];
+                    p++;
+                    document.getElementById('progressBar').style.width = `${Math.min((rows.length / 61400) * 100, 100)}%`;
+                    document.getElementById('loadStatus').textContent = `Loaded ${rows.length.toLocaleString()} rows`;
+                    if (data.length < pageSize) break;
+                }
 
-            latestYearInDB = Math.max(...masterData.map(d => d.y));
-            // Filter out any 2026 data if it somehow exists
-            if(latestYearInDB > 2025) latestYearInDB = 2025;
+                masterData = rows.map(r => {
+                    const d = new Date(r.date);
+                    return {
+                        ...r,
+                        y: d.getUTCFullYear(),
+                        m: d.getUTCMonth(),
+                        amt: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0
+                    };
+                }).filter(d => !isNaN(d.y) && d.y <= 2025);
 
-            document.getElementById('loader').classList.add('hidden');
-            document.getElementById('monthSlicer').addEventListener('change', render);
+                latestYearInDB = Math.max(...masterData.map(d => d.y));
+
+                document.getElementById('loader').classList.add('hidden');
+                setupDynamicSlicers();
+                
+                ['monthSlicer', 'catSlicer', 'packSlicer'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', render);
+                });
+                render();
+            } catch (e) { console.error(e); }
+        }
+
+        function setupDynamicSlicers() {
+            const populate = (id, key) => {
+                const el = document.getElementById(id);
+                const items = [...new Set(masterData.map(d => d[key]))].filter(Boolean).sort();
+                items.forEach(i => { el.innerHTML += `<option value="${i}">${i}</option>`; });
+            };
+            populate('catSlicer', 'category');
+            populate('packSlicer', 'package_name');
+        }
+
+        function resetFilters() {
+            document.getElementById('monthSlicer').value = 'all';
+            document.getElementById('catSlicer').value = 'all';
+            document.getElementById('packSlicer').value = 'all';
             render();
         }
 
         function render() {
-            const mSel = document.getElementById('monthSlicer').value;
-            updateCards(mSel);
-            updateCharts();
+            const mVal = document.getElementById('monthSlicer').value;
+            const cVal = document.getElementById('catSlicer').value;
+            const pVal = document.getElementById('packSlicer').value;
+
+            const filtered = masterData.filter(d => {
+                return (cVal === 'all' || d.category === cVal) &&
+                       (pVal === 'all' || d.package_name === pVal);
+            });
+
+            updateMetricCards(mVal, filtered);
+            updateTrends(filtered);
+            updateInfographics(filtered);
         }
 
-        function updateCards(mSel) {
-            let currData, prevData, labelC, labelP;
+        function updateMetricCards(mVal, data) {
+            const py = latestYearInDB - 1;
+            let curD, preD, lblC, lblP;
 
-            if (mSel === "all") {
-                currData = masterData.filter(d => d.y === latestYearInDB);
-                prevData = masterData.filter(d => d.y === latestYearInDB - 1);
-                labelC = `Total Year ${latestYearInDB}`;
-                labelP = `Total Year ${latestYearInDB - 1}`;
+            if (mVal === "all") {
+                curD = data.filter(d => d.y === latestYearInDB);
+                preD = data.filter(d => d.y === py);
+                lblC = `Total ${latestYearInDB}`; lblP = `Total ${py}`;
             } else {
-                const m = parseInt(mSel);
-                currData = masterData.filter(d => d.y === latestYearInDB && d.m === m);
-                prevData = masterData.filter(d => d.y === latestYearInDB - 1 && d.m === m);
+                const m = parseInt(mVal);
+                curD = data.filter(d => d.y === latestYearInDB && d.m === m);
+                preD = data.filter(d => d.y === py && d.m === m);
                 const mName = new Date(2000, m).toLocaleString('default', { month: 'long' });
-                labelC = `${mName} ${latestYearInDB}`;
-                labelP = `${mName} ${latestYearInDB - 1}`;
+                lblC = `${mName} ${latestYearInDB}`; lblP = `${mName} ${py}`;
             }
 
-            const c = { r: currData.reduce((s,d)=>s+d.amt,0), n: currData.length };
-            const p = { r: prevData.reduce((s,d)=>s+d.amt,0), n: prevData.length };
+            const c = { r: curD.reduce((s,d)=>s+d.amt,0), n: curD.length };
+            const p = { r: preD.reduce((s,d)=>s+d.amt,0), n: preD.length };
 
-            document.getElementById('labelCurr').textContent = labelC;
-            document.getElementById('labelPrev').textContent = labelP;
+            document.getElementById('labelCurr').textContent = lblC;
+            document.getElementById('labelPrev').textContent = lblP;
             document.getElementById('currRev').textContent = `₱${c.r.toLocaleString()}`;
             document.getElementById('currCen').textContent = `${c.n} Patients`;
             document.getElementById('prevRev').textContent = `₱${p.r.toLocaleString()}`;
@@ -140,34 +182,51 @@
             vEl.className = `text-4xl font-black ${diff >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
         }
 
-        function updateCharts() {
+        function updateTrends(data) {
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            const cy = latestYearInDB, py = latestYearInDB - 1;
+            const cy = latestYearInDB, py = cy - 1;
 
             const getStats = (y) => months.map((_, i) => {
-                const sub = masterData.filter(d => d.y === y && d.m === i);
+                const sub = data.filter(d => d.y === y && d.m === i);
                 return { r: sub.reduce((s,d)=>s+d.amt,0), n: sub.length };
             });
 
             const cS = getStats(cy), pS = getStats(py);
 
-            draw('revChart', months, [
+            drawChart('revChart', 'line', months, [
                 { label: `${cy} Revenue`, data: cS.map(v=>v.r), borderColor: '#4f46e5', tension: 0.3 },
                 { label: `${py} Revenue`, data: pS.map(v=>v.r), borderColor: '#cbd5e1', borderDash:[5,5], tension: 0.3 }
-            ], 'Revenue YoY');
+            ], 'Revenue Performance (YoY)');
 
-            draw('cenChart', months, [
+            drawChart('cenChart', 'line', months, [
                 { label: `${cy} Census`, data: cS.map(v=>v.n), borderColor: '#06b6d4', tension: 0.3 },
                 { label: `${py} Census`, data: pS.map(v=>v.n), borderColor: '#cbd5e1', borderDash:[5,5], tension: 0.3 }
-            ], 'Census YoY');
+            ], 'Patient Census (YoY)');
         }
 
-        function draw(id, labels, datasets, title) {
+        function updateInfographics(data) {
+            const grp = (key) => {
+                const o = {};
+                data.forEach(d => o[d[key]] = (o[d[key]] || 0) + 1);
+                const sorted = Object.entries(o).sort((a,b) => b[1]-a[1]).slice(0, 8);
+                return { k: sorted.map(x => x[0]), v: sorted.map(x => x[1]) };
+            };
+
+            const l = grp('location'), g = grp('gender'), a = grp('age_bracket');
+            
+            drawChart('locChart', 'bar', l.k, [{ label: 'Patients', data: l.v, backgroundColor: '#818cf8' }], 'Patient Location');
+            drawChart('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#4f46e5', '#ec4899', '#f59e0b'] }], 'Gender Split');
+            drawChart('ageChart', 'pie', a.k, [{ data: a.v, backgroundColor: ['#10b981', '#f43f5e', '#3b82f6', '#f59e0b', '#8b5cf6'] }], 'Age Brackets');
+        }
+
+        function drawChart(id, type, labels, datasets, title) {
             if (charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
-                type: 'line',
-                data: { labels, datasets },
-                options: { responsive: true, plugins: { title: { display: true, text: title }, legend: { position: 'bottom' } } }
+                type, data: { labels, datasets },
+                options: { 
+                    responsive: true, 
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, title: { display: !!title, text: title } }
+                }
             });
         }
 
