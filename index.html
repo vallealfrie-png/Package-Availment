@@ -3,229 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Healthcare Analytics Dashboard</title>
+    <title>Clinical Analytics Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/dist/date-fns.min.js"></script>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900">
+<body class="bg-slate-50 text-slate-900">
 
-    <nav class="bg-white border-b border-slate-200 px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50 gap-4">
-        <h1 class="text-xl font-bold text-indigo-600 flex items-center gap-2">
-            <i data-lucide="layout-dashboard"></i> Clinical Insights
+    <nav class="bg-indigo-700 text-white px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50 shadow-lg">
+        <h1 class="text-xl font-bold flex items-center gap-2">
+            <i data-lucide="activity"></i> Hospital Revenue Dashboard
         </h1>
-        <div class="flex flex-wrap gap-4">
-            <select id="monthSlicer" class="border rounded-md px-3 py-2 text-sm bg-white shadow-sm outline-indigo-500">
-                <option value="all">All Time</option>
-            </select>
-            <select id="categorySlicer" class="border rounded-md px-3 py-2 text-sm bg-white shadow-sm outline-indigo-500">
-                <option value="all">All Categories</option>
-            </select>
-            <select id="packageSlicer" class="border rounded-md px-3 py-2 text-sm bg-white shadow-sm outline-indigo-500">
-                <option value="all">All Packages</option>
-            </select>
+        <div class="flex flex-wrap gap-3 text-slate-800">
+            <select id="monthSlicer" class="rounded px-2 py-1 text-sm bg-white border-none outline-none"><option value="all">All Months</option></select>
+            <select id="categorySlicer" class="rounded px-2 py-1 text-sm bg-white border-none outline-none"><option value="all">All Categories</option></select>
+            <select id="packageSlicer" class="rounded px-2 py-1 text-sm bg-white border-none outline-none"><option value="all">All Packages</option></select>
         </div>
     </nav>
 
     <main class="p-6 max-w-7xl mx-auto space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <p class="text-xs text-slate-500 font-bold uppercase">Latest Month</p>
-                <h2 id="currRev" class="text-3xl font-bold mt-1">$0</h2>
-                <p id="currCensus" class="text-indigo-600 text-sm font-medium mt-1">0 Patients</p>
+        <div id="statsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow border-l-4 border-indigo-500">
+                <p class="text-xs font-bold text-slate-400 uppercase">Latest Month Revenue</p>
+                <h2 id="currRev" class="text-3xl font-black mt-1">$0</h2>
+                <p id="currCensus" class="text-indigo-600 text-sm font-bold mt-1">0 Patients</p>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <p class="text-xs text-slate-500 font-bold uppercase">Previous Month</p>
-                <h2 id="prevRev" class="text-3xl font-bold mt-1 text-slate-600">$0</h2>
-                <p id="prevCensus" class="text-slate-500 text-sm font-medium mt-1">0 Patients</p>
+            <div class="bg-white p-6 rounded-xl shadow border-l-4 border-slate-300">
+                <p class="text-xs font-bold text-slate-400 uppercase">Previous Month</p>
+                <h2 id="prevRev" class="text-3xl font-black mt-1 text-slate-600">$0</h2>
+                <p id="prevCensus" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <p class="text-xs text-slate-500 font-bold uppercase">Revenue Variance</p>
+            <div class="bg-white p-6 rounded-xl shadow border-l-4 id="varBorder"">
+                <p class="text-xs font-bold text-slate-400 uppercase">Growth Variance</p>
                 <div class="flex items-center gap-2 mt-1">
-                    <h2 id="varRev" class="text-3xl font-bold">0%</h2>
-                    <div id="varIconContainer"></div>
+                    <h2 id="varRev" class="text-3xl font-black">0%</h2>
                 </div>
-                <p class="text-slate-400 text-xs mt-1">Vs. Previous Month</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="dollar-sign" class="w-4"></i> Revenue Trend</h3>
-                <canvas id="revenueChart" height="150"></canvas>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="users" class="w-4"></i> Census Trend</h3>
-                <canvas id="censusChart" height="150"></canvas>
-            </div>
+            <div class="bg-white p-6 rounded-xl shadow"><h3 class="font-bold mb-4">Revenue Trend</h3><canvas id="revChart"></canvas></div>
+            <div class="bg-white p-6 rounded-xl shadow"><h3 class="font-bold mb-4">Patient Census</h3><canvas id="cenChart"></canvas></div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 class="font-bold mb-4 text-sm text-center">Location Distribution</h3>
-                <canvas id="locationChart"></canvas>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 class="font-bold mb-4 text-sm text-center">Gender Split</h3>
-                <canvas id="genderChart"></canvas>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 class="font-bold mb-4 text-sm text-center">Age Brackets</h3>
-                <canvas id="ageChart"></canvas>
-            </div>
+            <div class="bg-white p-6 rounded-xl shadow"><h3 class="text-center font-bold mb-4">By Location</h3><canvas id="locChart"></canvas></div>
+            <div class="bg-white p-6 rounded-xl shadow"><h3 class="text-center font-bold mb-4">By Gender</h3><canvas id="genChart"></canvas></div>
+            <div class="bg-white p-6 rounded-xl shadow"><h3 class="text-center font-bold mb-4">Age Brackets</h3><canvas id="ageChart"></canvas></div>
         </div>
     </main>
 
     <script>
-        // Supabase Config
         const SUPABASE_URL = 'https://edlheufkxcyuxontunvm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkbGhldWZreGN5dXhvbnR1bnZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjA2ODAsImV4cCI6MjA4MzQzNjY4MH0.BV77ylA7W3H7qd-Y2ty0bZW2KYE3A87uN1rPI1gCZQo';
-        const supabase = typeof supabase !== 'undefined' ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : window['supabase'].createClient(SUPABASE_URL, SUPABASE_KEY);
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let rawData = [];
-        let charts = {};
+        let masterData = [];
+        let activeCharts = {};
 
-        async function init() {
+        async function loadData() {
             lucide.createIcons();
-            const { data, error } = await supabase.from('database').select('*');
-            if (error) return console.error(error);
+            console.log("Fetching from Supabase...");
             
-            rawData = data.map(d => ({ ...d, date: new Date(d.date) }));
-            populateSlicers();
-            updateDashboard();
+            const { data, error } = await sb.from('database').select('*');
             
-            // Event Listeners
-            ['monthSlicer', 'categorySlicer', 'packageSlicer'].forEach(id => {
-                document.getElementById(id).addEventListener('change', updateDashboard);
-            });
-        }
+            if (error || !data || data.length === 0) {
+                console.error("Connection Error or Empty Table:", error);
+                document.body.innerHTML += `<div class="fixed inset-0 bg-red-100 flex items-center justify-center p-10 text-red-800 text-center">
+                    <div><h1 class="text-2xl font-bold">No Data Found</h1><p>Check your RLS Policies or Table Name in Supabase.</p></div>
+                </div>`;
+                return;
+            }
 
-        function populateSlicers() {
-            const categories = [...new Set(rawData.map(d => d.category))];
-            const packages = [...new Set(rawData.map(d => d.package_name))];
-            const months = [...new Set(rawData.map(d => dateFns.format(d.date, 'MMM yyyy')))];
-
-            const fill = (id, list) => {
-                const el = document.getElementById(id);
-                list.forEach(item => {
-                    if(!item) return;
-                    const opt = document.createElement('option');
-                    opt.value = item;
-                    opt.textContent = item;
-                    el.appendChild(opt);
-                });
-            };
-
-            fill('categorySlicer', categories);
-            fill('packageSlicer', packages);
-            fill('monthSlicer', months);
-        }
-
-        function updateDashboard() {
-            const mFilter = document.getElementById('monthSlicer').value;
-            const cFilter = document.getElementById('categorySlicer').value;
-            const pFilter = document.getElementById('packageSlicer').value;
-
-            let filtered = rawData.filter(d => {
-                const matchM = mFilter === 'all' || dateFns.format(d.date, 'MMM yyyy') === mFilter;
-                const matchC = cFilter === 'all' || d.category === cFilter;
-                const matchP = pFilter === 'all' || d.package_name === pFilter;
-                return matchM && matchC && matchP;
-            });
-
-            renderCards(filtered);
-            renderLineCharts(filtered);
-            renderInfoCharts(filtered);
-        }
-
-        function renderCards(data) {
-            if (data.length === 0) return;
-            
-            // Sort to find latest
-            const sorted = [...data].sort((a, b) => b.date - a.date);
-            const latestMonth = dateFns.startOfMonth(sorted[0].date);
-            const prevMonth = dateFns.subMonths(latestMonth, 1);
-
-            const getStats = (mo) => {
-                const items = data.filter(d => dateFns.isSameMonth(d.date, mo));
-                return {
-                    rev: items.reduce((sum, d) => sum + (Number(d.amount) || 0), 0),
-                    census: items.length
+            // Normalization: Ensure properties exist regardless of casing
+            masterData = data.map(row => {
+                const findVal = (keys) => {
+                    const found = Object.keys(row).find(k => keys.includes(k.toLowerCase()));
+                    return row[found];
                 };
-            };
+                return {
+                    ...row,
+                    date: new Date(findVal(['date'])),
+                    amount: parseFloat(findVal(['amount'])) || 0,
+                    category: findVal(['category']) || 'N/A',
+                    package_name: findVal(['package_name', 'packagename']) || 'N/A',
+                    location: findVal(['location']) || 'N/A',
+                    gender: findVal(['gender']) || 'N/A',
+                    age_bracket: findVal(['age_bracket', 'agebracket']) || 'N/A'
+                };
+            }).filter(d => !isNaN(d.date.getTime()));
 
-            const curr = getStats(latestMonth);
-            const prev = getStats(prevMonth);
-
-            document.getElementById('currRev').textContent = `$${curr.rev.toLocaleString()}`;
-            document.getElementById('currCensus').textContent = `${curr.census} Patients`;
-            document.getElementById('prevRev').textContent = `$${prev.rev.toLocaleString()}`;
-            document.getElementById('prevCensus').textContent = `${prev.census} Patients`;
-
-            const variance = prev.rev === 0 ? 0 : ((curr.rev - prev.rev) / prev.rev) * 100;
-            const varEl = document.getElementById('varRev');
-            varEl.textContent = `${variance.toFixed(1)}%`;
-            varEl.className = `text-3xl font-bold ${variance >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        }
-
-        function renderLineCharts(data) {
-            const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            setupSlicers();
+            refreshDashboard();
             
-            const getYearlyData = (yearOffset) => {
-                const targetYear = new Date().getFullYear() - yearOffset;
-                return labels.map((_, i) => {
-                    return data
-                        .filter(d => d.date.getFullYear() === targetYear && d.date.getMonth() === i)
-                        .reduce((sum, d) => ({ 
-                            rev: sum.rev + (Number(d.amount) || 0), 
-                            cen: sum.cen + 1 
-                        }), {rev: 0, cen: 0});
-                });
-            };
-
-            const cyData = getYearlyData(0);
-            const pyData = getYearlyData(1);
-
-            updateChart('revenueChart', 'line', labels, [
-                { label: 'Current Year', data: cyData.map(d => d.rev), borderColor: '#4f46e5' },
-                { label: 'Prev Year', data: pyData.map(d => d.rev), borderColor: '#cbd5e1', borderDash: [5,5] }
-            ]);
-
-            updateChart('censusChart', 'line', labels, [
-                { label: 'Current Year', data: cyData.map(d => d.cen), borderColor: '#06b6d4' },
-                { label: 'Prev Year', data: pyData.map(d => d.cen), borderColor: '#cbd5e1', borderDash: [5,5] }
-            ]);
-        }
-
-        function renderInfoCharts(data) {
-            const group = (key) => {
-                const counts = {};
-                data.forEach(d => counts[d[key]] = (counts[d[key]] || 0) + 1);
-                return { labels: Object.keys(counts), values: Object.values(counts) };
-            };
-
-            const loc = group('location');
-            updateChart('locationChart', 'bar', loc.labels, [{ label: 'Patients', data: loc.values, backgroundColor: '#6366f1' }]);
-
-            const gen = group('gender');
-            updateChart('genderChart', 'doughnut', gen.labels, [{ data: gen.values, backgroundColor: ['#818cf8', '#f472b6', '#fbbf24'] }]);
-
-            const age = group('age_bracket');
-            updateChart('ageChart', 'pie', age.labels, [{ data: age.values, backgroundColor: ['#2dd4bf', '#fb7185', '#38bdf8', '#fbbf24'] }]);
-        }
-
-        function updateChart(id, type, labels, datasets) {
-            if (charts[id]) charts[id].destroy();
-            charts[id] = new Chart(document.getElementById(id), {
-                type: type,
-                data: { labels, datasets },
-                options: { responsive: true, plugins: { legend: { display: type !== 'bar' } } }
+            ['monthSlicer', 'categorySlicer', 'packageSlicer'].forEach(id => {
+                document.getElementById(id).addEventListener('change', refreshDashboard);
             });
         }
 
-        init();
+        function setupSlicers() {
+            const getUnique = (key) => [...new Set(masterData.map(d => d[key]))].sort();
+            const populate = (id, items) => {
+                const sel = document.getElementById(id);
+                items.forEach(i => {
+                    const opt = document.createElement('option');
+                    opt.value = opt.textContent = i;
+                    sel.appendChild(opt);
+                });
+            };
+
+            const months = [...new Set(masterData.map(d => dateFns.format(d.date, 'MMM yyyy')))];
+            populate('monthSlicer', months);
+            populate('categorySlicer', getUnique('category'));
+            populate('packageSlicer', getUnique('package_name'));
+        }
+
+        function refreshDashboard() {
+            const m = document.getElementById('monthSlicer').value;
+            const c = document.getElementById('categorySlicer').value;
+            const p = document.getElementById('packageSlicer').value;
+
+            const filtered = masterData.filter(d => {
+                return (m === 'all' || dateFns.format(d.date, 'MMM yyyy') === m) &&
+                       (c === 'all' || d.category === c) &&
+                       (p === 'all' || d.package_name === p);
+            });
+
+            updateCards(filtered);
+            updateTrends(filtered);
+            updateInfoGraphs(filtered);
+        }
+
+        function updateCards(data) {
+            if(!data.length) return;
+            const sorted = [...data].sort((a,b) => b.date - a.date);
+            const latest = dateFns.startOfMonth(sorted[0].date);
+            const previous = dateFns.subMonths(latest, 1);
+
+            const stats = (mo) => {
+                const sub = data.filter(d => dateFns.isSameMonth(d.date, mo));
+                return { rev: sub.reduce((a, b) => a + b.amount, 0), cen: sub.length };
+            };
+
+            const c = stats(latest), p = stats(previous);
+            const vari = p.rev ? ((c.rev - p.rev) / p.rev * 100) : 0;
+
+            document.getElementById('currRev').textContent = `₱${c.rev.toLocaleString()}`;
+            document.getElementById('currCensus').textContent = `${c.cen} Patients`;
+            document.getElementById('prevRev').textContent = `₱${p.rev.toLocaleString()}`;
+            document.getElementById('prevCensus').textContent = `${p.cen} Patients`;
+            
+            const vEl = document.getElementById('varRev');
+            vEl.textContent = `${vari.toFixed(1)}%`;
+            vEl.className = `text-3xl font-black ${vari >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+        }
+
+        function updateTrends(data) {
+            const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const currentYear = new Date().getFullYear();
+            
+            const getYearData = (yr) => labels.map((_, i) => {
+                const monthSub = data.filter(d => d.date.getFullYear() === yr && d.date.getMonth() === i);
+                return { rev: monthSub.reduce((a,b) => a + b.amount, 0), cen: monthSub.length };
+            });
+
+            const cy = getYearData(currentYear), py = getYearData(currentYear - 1);
+
+            drawChart('revChart', 'line', labels, [
+                { label: 'Current Year', data: cy.map(v => v.rev), borderColor: '#6366f1' },
+                { label: 'Prev Year', data: py.map(v => v.rev), borderColor: '#cbd5e1', borderDash: [5,5] }
+            ]);
+            drawChart('cenChart', 'line', labels, [
+                { label: 'Current Year', data: cy.map(v => v.cen), borderColor: '#06b6d4' },
+                { label: 'Prev Year', data: py.map(v => v.cen), borderColor: '#cbd5e1', borderDash: [5,5] }
+            ]);
+        }
+
+        function updateInfoGraphs(data) {
+            const grp = (key) => {
+                const obj = {};
+                data.forEach(d => obj[d[key]] = (obj[d[key]] || 0) + 1);
+                return { l: Object.keys(obj), v: Object.values(obj) };
+            };
+
+            const loc = grp('location'), gen = grp('gender'), age = grp('age_bracket');
+            drawChart('locChart', 'bar', loc.l, [{ label: 'Total', data: loc.v, backgroundColor: '#818cf8' }]);
+            drawChart('genChart', 'doughnut', gen.l, [{ data: gen.v, backgroundColor: ['#6366f1', '#f472b6', '#fbbf24'] }]);
+            drawChart('ageChart', 'pie', age.l, [{ data: age.v, backgroundColor: ['#2dd4bf', '#fb7185', '#38bdf8', '#fbbf24'] }]);
+        }
+
+        function drawChart(id, type, labels, datasets) {
+            if(activeCharts[id]) activeCharts[id].destroy();
+            activeCharts[id] = new Chart(document.getElementById(id), {
+                type, data: { labels, datasets }, options: { responsive: true }
+            });
+        }
+
+        loadData();
     </script>
 </body>
 </html>
