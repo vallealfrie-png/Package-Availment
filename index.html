@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinical Analytics - Age Bracket YoY</title>
+    <title>Clinical Analytics - Full Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans">
 
@@ -15,7 +20,7 @@
         <div class="w-64 bg-slate-800 rounded-full h-1.5 mb-4 overflow-hidden">
             <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
         </div>
-        <p class="text-sm font-bold tracking-widest uppercase" id="loadStatus">Syncing Records...</p>
+        <p class="text-sm font-bold tracking-widest uppercase" id="loadStatus">Synchronizing Records...</p>
     </div>
 
     <nav class="bg-indigo-900 text-white px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50 shadow-xl">
@@ -63,10 +68,33 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="cenChart" height="150"></canvas></div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="locChart"></canvas></div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="genChart"></canvas></div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="ageChart"></canvas></div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-slate-700 uppercase text-xs tracking-wider">Filtered Records (Latest 50)</h3>
+                <span id="tableCount" class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded-full">0 Records</span>
+            </div>
+            <div class="overflow-x-auto max-h-[400px]">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-white sticky top-0 shadow-sm z-10">
+                        <tr class="text-slate-400 border-b border-slate-100">
+                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Date</th>
+                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Category</th>
+                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Package</th>
+                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Location</th>
+                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Gender</th>
+                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody" class="divide-y divide-slate-50">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -102,6 +130,7 @@
                         ...r,
                         y: d.getUTCFullYear(),
                         m: d.getUTCMonth(),
+                        displayDate: d.toLocaleDateString(),
                         amt: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0
                     };
                 }).filter(d => !isNaN(d.y) && d.y <= 2025);
@@ -145,9 +174,19 @@
                        (pVal === 'all' || d.package_name === pVal);
             });
 
+            const py = latestYearInDB - 1;
+            let cardFiltered;
+            if (mVal === "all") {
+                cardFiltered = filtered; // Cards will handle the year split internally
+            } else {
+                const m = parseInt(mVal);
+                cardFiltered = filtered.filter(d => d.m === m);
+            }
+
             updateMetricCards(mVal, filtered);
             updateTrends(filtered);
             updateInfographics(filtered);
+            updateTable(cardFiltered);
         }
 
         function updateMetricCards(mVal, data) {
@@ -211,22 +250,39 @@
                 const sorted = Object.entries(o).sort((a,b) => b[1]-a[1]).slice(0, 8);
                 return { k: sorted.map(x => x[0]), v: sorted.map(x => x[1]) };
             };
-
             const l = grp('location'), g = grp('gender'), a = grp('age_bracket');
-            
             drawChart('locChart', 'bar', l.k, [{ label: 'Patients', data: l.v, backgroundColor: '#818cf8' }], 'Patient Location');
             drawChart('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#4f46e5', '#ec4899', '#f59e0b'] }], 'Gender Split');
             drawChart('ageChart', 'pie', a.k, [{ data: a.v, backgroundColor: ['#10b981', '#f43f5e', '#3b82f6', '#f59e0b', '#8b5cf6'] }], 'Age Brackets');
+        }
+
+        function updateTable(data) {
+            const body = document.getElementById('dataTableBody');
+            document.getElementById('tableCount').textContent = `${data.length.toLocaleString()} Total Records Found`;
+            body.innerHTML = '';
+            
+            // Sort by date descending and take top 50
+            const displayList = [...data].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 50);
+
+            displayList.forEach(r => {
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-3 font-medium text-slate-700">${r.displayDate}</td>
+                        <td class="px-6 py-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px] font-bold uppercase">${r.category}</span></td>
+                        <td class="px-6 py-3 text-slate-600 font-medium">${r.package_name || 'N/A'}</td>
+                        <td class="px-6 py-3 text-slate-500">${r.location}</td>
+                        <td class="px-6 py-3 text-slate-500">${r.gender}</td>
+                        <td class="px-6 py-3 font-bold text-slate-800">₱${r.amt.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
         }
 
         function drawChart(id, type, labels, datasets, title) {
             if (charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
                 type, data: { labels, datasets },
-                options: { 
-                    responsive: true, 
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, title: { display: !!title, text: title } }
-                }
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, title: { display: !!title, text: title } } }
             });
         }
 
