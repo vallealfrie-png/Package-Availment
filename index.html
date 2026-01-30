@@ -3,98 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinical Analytics - Full Suite</title>
+    <title>Clinical Intelligence - Dark Neon</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        body { background-color: #020617; color: #f8fafc; }
+        .glow-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
+            transition: all 0.3s ease;
+        }
+        .glow-card:hover {
+            border-color: #6366f1;
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.3);
+        }
+        .neon-text-indigo { text-shadow: 0 0 10px rgba(99, 102, 241, 0.8); }
+        .neon-text-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.8); }
+        select { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans">
+<body class="font-sans">
 
-    <div id="loader" class="fixed inset-0 bg-slate-900 z-[100] flex flex-col items-center justify-center text-white">
-        <div class="w-64 bg-slate-800 rounded-full h-1.5 mb-4 overflow-hidden">
-            <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
+    <div id="loader" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center">
+        <div class="w-64 bg-slate-900 rounded-full h-1 mb-4 overflow-hidden border border-indigo-500/30">
+            <div id="progressBar" class="bg-indigo-500 h-full w-0 shadow-[0_0_15px_#6366f1]"></div>
         </div>
-        <p class="text-sm font-bold tracking-widest uppercase" id="loadStatus">Synchronizing Records...</p>
+        <p class="text-xs font-black tracking-[0.3em] uppercase text-indigo-400 animate-pulse" id="loadStatus">Initializing Stream</p>
     </div>
 
-    <nav class="bg-indigo-900 text-white px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50 shadow-xl">
+    <nav class="border-b border-slate-800 bg-slate-950/50 backdrop-blur-md px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50">
         <div class="flex items-center gap-2">
-            <i data-lucide="activity" class="text-indigo-400"></i>
-            <h1 class="text-lg font-black uppercase tracking-tight">Health<span class="text-indigo-300">Sync</span></h1>
+            <i data-lucide="zap" class="text-indigo-500 fill-indigo-500/20"></i>
+            <h1 class="text-xl font-black uppercase tracking-tighter italic">Core<span class="text-indigo-500">Analytics</span></h1>
         </div>
-        <div class="flex flex-wrap gap-2 text-slate-900">
-            <select id="monthSlicer" class="rounded-lg px-3 py-2 text-sm font-bold outline-none">
-                <option value="all">Full Year Comparison</option>
-                <option value="0">January Only</option><option value="1">February Only</option><option value="2">March Only</option>
-                <option value="3">April Only</option><option value="4">May Only</option><option value="5">June Only</option>
-                <option value="6">July Only</option><option value="7">August Only</option><option value="8">September Only</option>
-                <option value="9">October Only</option><option value="10">November Only</option><option value="11">December Only</option>
-            </select>
-            <select id="catSlicer" class="rounded-lg px-3 py-2 text-sm font-bold outline-none"><option value="all">All Categories</option></select>
-            <select id="packSlicer" class="rounded-lg px-3 py-2 text-sm font-bold outline-none"><option value="all">All Packages</option></select>
-            <button onclick="resetFilters()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
-                <i data-lucide="refresh-ccw" class="w-4 h-4"></i> Reset
-            </button>
+        <div class="flex flex-wrap gap-3">
+            <select id="monthSlicer" class="rounded-lg px-3 py-2 text-xs font-bold outline-none cursor-pointer"></select>
+            <select id="catSlicer" class="rounded-lg px-3 py-2 text-xs font-bold outline-none cursor-pointer"><option value="all">Categories</option></select>
+            <button onclick="resetFilters()" class="bg-slate-800 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all">Reset</button>
         </div>
     </nav>
 
     <main class="p-6 max-w-[1600px] mx-auto space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <p id="labelCurr" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latest Year</p>
-                <h2 id="currRev" class="text-4xl font-black mt-2 text-indigo-700">₱0</h2>
-                <p id="currCen" class="text-slate-500 text-sm font-bold">0 Patients</p>
+            <div class="glow-card p-6 rounded-2xl relative overflow-hidden group">
+                <p id="labelCurr" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Current</p>
+                <h2 id="currRev" class="text-4xl font-black mt-2 text-white neon-text-indigo">₱0</h2>
+                <p id="currCen" class="text-indigo-400 text-sm font-bold mt-1">0 Patients</p>
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity"><i data-lucide="dollar-sign" class="w-12 h-12"></i></div>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <p id="labelPrev" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Previous Year</p>
+            <div class="glow-card p-6 rounded-2xl relative overflow-hidden group">
+                <p id="labelPrev" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Previous Year</p>
                 <h2 id="prevRev" class="text-4xl font-black mt-2 text-slate-400">₱0</h2>
-                <p id="prevCen" class="text-slate-500 text-sm font-bold">0 Patients</p>
+                <p id="prevCen" class="text-slate-500 text-sm font-bold mt-1">0 Patients</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">YoY Variance</p>
+            <div class="glow-card p-6 rounded-2xl border-l-4 border-indigo-500">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Performance</p>
                 <h2 id="varRev" class="text-4xl font-black mt-2">0%</h2>
-                <p class="text-slate-400 text-xs font-medium italic">Growth vs Same Period Last Year</p>
+                <p class="text-slate-500 text-[10px] uppercase font-bold mt-1 tracking-tighter">YoY Growth Momentum</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="revChart" height="150"></canvas></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="cenChart" height="150"></canvas></div>
+            <div class="glow-card p-6 rounded-2xl"><canvas id="revChart" height="140"></canvas></div>
+            <div class="glow-card p-6 rounded-2xl"><canvas id="cenChart" height="140"></canvas></div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="locChart"></canvas></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="genChart"></canvas></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><canvas id="ageChart"></canvas></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glow-card p-6 rounded-2xl">
+                <h3 class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Top 10 Packages by Revenue</h3>
+                <canvas id="topRevChart" height="180"></canvas>
+            </div>
+            <div class="glow-card p-6 rounded-2xl">
+                <h3 class="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em] mb-4">Top 10 Packages by Census</h3>
+                <canvas id="topCenChart" height="180"></canvas>
+            </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h3 class="font-bold text-slate-700 uppercase text-xs tracking-wider">Filtered Records (Latest 50)</h3>
-                <span id="tableCount" class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded-full">0 Records</span>
-            </div>
-            <div class="overflow-x-auto max-h-[400px]">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-white sticky top-0 shadow-sm z-10">
-                        <tr class="text-slate-400 border-b border-slate-100">
-                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Date</th>
-                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Category</th>
-                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Package</th>
-                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Location</th>
-                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Gender</th>
-                            <th class="px-6 py-3 font-bold uppercase text-[10px]">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody" class="divide-y divide-slate-50">
-                        </tbody>
-                </table>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
+            <div class="glow-card p-6 rounded-2xl"><canvas id="locChart"></canvas></div>
+            <div class="glow-card p-6 rounded-2xl"><canvas id="genChart"></canvas></div>
+            <div class="glow-card p-6 rounded-2xl"><canvas id="ageChart"></canvas></div>
         </div>
     </main>
 
@@ -107,102 +98,70 @@
         let charts = {};
         let latestYearInDB = 2025;
 
+        // Configuration for Global Dark Charts
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = '#1e293b';
+
         async function init() {
             lucide.createIcons();
-            let rows = [];
-            let p = 0;
-            const pageSize = 1000;
+            let rows = []; let p = 0;
+            while (true) {
+                const { data, error } = await sb.from('database').select('*').range(p * 1000, (p + 1) * 1000 - 1);
+                if (error || !data || data.length === 0) break;
+                rows = [...rows, ...data]; p++;
+                document.getElementById('progressBar').style.width = `${Math.min((rows.length / 61400) * 100, 100)}%`;
+                if (data.length < 1000) break;
+            }
 
-            try {
-                while (true) {
-                    const { data, error } = await sb.from('database').select('*').range(p * pageSize, (p + 1) * pageSize - 1);
-                    if (error || !data || data.length === 0) break;
-                    rows = [...rows, ...data];
-                    p++;
-                    document.getElementById('progressBar').style.width = `${Math.min((rows.length / 61400) * 100, 100)}%`;
-                    document.getElementById('loadStatus').textContent = `Loaded ${rows.length.toLocaleString()} rows`;
-                    if (data.length < pageSize) break;
-                }
+            masterData = rows.map(r => {
+                const d = new Date(r.date);
+                return { ...r, y: d.getUTCFullYear(), m: d.getUTCMonth(), amt: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0 };
+            }).filter(d => !isNaN(d.y) && d.y <= 2025);
 
-                masterData = rows.map(r => {
-                    const d = new Date(r.date);
-                    return {
-                        ...r,
-                        y: d.getUTCFullYear(),
-                        m: d.getUTCMonth(),
-                        displayDate: d.toLocaleDateString(),
-                        amt: parseFloat(String(r.amount).replace(/[^0-9.-]+/g,"")) || 0
-                    };
-                }).filter(d => !isNaN(d.y) && d.y <= 2025);
+            document.getElementById('loader').classList.add('hidden');
+            
+            // Setup Slicers
+            const mEl = document.getElementById('monthSlicer');
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            mEl.innerHTML = `<option value="all">Full Year Comparison</option>` + months.map((m,i)=>`<option value="${i}">${m} Only</option>`).join('');
+            
+            const catEl = document.getElementById('catSlicer');
+            [...new Set(masterData.map(d=>d.category))].filter(Boolean).sort().forEach(c => catEl.innerHTML += `<option value="${c}">${c}</option>`);
 
-                latestYearInDB = Math.max(...masterData.map(d => d.y));
-
-                document.getElementById('loader').classList.add('hidden');
-                setupDynamicSlicers();
-                
-                ['monthSlicer', 'catSlicer', 'packSlicer'].forEach(id => {
-                    document.getElementById(id).addEventListener('change', render);
-                });
-                render();
-            } catch (e) { console.error(e); }
-        }
-
-        function setupDynamicSlicers() {
-            const populate = (id, key) => {
-                const el = document.getElementById(id);
-                const items = [...new Set(masterData.map(d => d[key]))].filter(Boolean).sort();
-                items.forEach(i => { el.innerHTML += `<option value="${i}">${i}</option>`; });
-            };
-            populate('catSlicer', 'category');
-            populate('packSlicer', 'package_name');
+            ['monthSlicer', 'catSlicer'].forEach(id => document.getElementById(id).addEventListener('change', render));
+            render();
         }
 
         function resetFilters() {
             document.getElementById('monthSlicer').value = 'all';
             document.getElementById('catSlicer').value = 'all';
-            document.getElementById('packSlicer').value = 'all';
             render();
         }
 
         function render() {
             const mVal = document.getElementById('monthSlicer').value;
             const cVal = document.getElementById('catSlicer').value;
-            const pVal = document.getElementById('packSlicer').value;
+            const filtered = masterData.filter(d => (cVal === 'all' || d.category === cVal));
 
-            const filtered = masterData.filter(d => {
-                return (cVal === 'all' || d.category === cVal) &&
-                       (pVal === 'all' || d.package_name === pVal);
-            });
-
-            const py = latestYearInDB - 1;
-            let cardFiltered;
-            if (mVal === "all") {
-                cardFiltered = filtered; // Cards will handle the year split internally
-            } else {
-                const m = parseInt(mVal);
-                cardFiltered = filtered.filter(d => d.m === m);
-            }
-
-            updateMetricCards(mVal, filtered);
+            updateMetrics(mVal, filtered);
             updateTrends(filtered);
+            updateTop10(filtered);
             updateInfographics(filtered);
-            updateTable(cardFiltered);
         }
 
-        function updateMetricCards(mVal, data) {
+        function updateMetrics(mVal, data) {
             const py = latestYearInDB - 1;
             let curD, preD, lblC, lblP;
 
             if (mVal === "all") {
-                curD = data.filter(d => d.y === latestYearInDB);
-                preD = data.filter(d => d.y === py);
-                lblC = `Total ${latestYearInDB}`; lblP = `Total ${py}`;
+                curD = data.filter(d => d.y === latestYearInDB); preD = data.filter(d => d.y === py);
+                lblC = `Full Year ${latestYearInDB}`; lblP = `Full Year ${py}`;
             } else {
                 const m = parseInt(mVal);
                 curD = data.filter(d => d.y === latestYearInDB && d.m === m);
                 preD = data.filter(d => d.y === py && d.m === m);
-                const mName = new Date(2000, m).toLocaleString('default', { month: 'long' });
-                lblC = `${mName} ${latestYearInDB}`; lblP = `${mName} ${py}`;
+                lblC = `${new Date(2000, m).toLocaleString('default', { month: 'long' })} ${latestYearInDB}`;
+                lblP = `${new Date(2000, m).toLocaleString('default', { month: 'long' })} ${py}`;
             }
 
             const c = { r: curD.reduce((s,d)=>s+d.amt,0), n: curD.length };
@@ -218,71 +177,74 @@
             const diff = p.r ? ((c.r - p.r) / p.r * 100) : 0;
             const vEl = document.getElementById('varRev');
             vEl.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`;
-            vEl.className = `text-4xl font-black ${diff >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+            vEl.className = `text-4xl font-black ${diff >= 0 ? 'text-emerald-400 neon-text-indigo' : 'text-rose-400'}`;
         }
 
         function updateTrends(data) {
-            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            const cy = latestYearInDB, py = cy - 1;
-
-            const getStats = (y) => months.map((_, i) => {
+            const mLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const getS = (y) => mLabels.map((_, i) => {
                 const sub = data.filter(d => d.y === y && d.m === i);
                 return { r: sub.reduce((s,d)=>s+d.amt,0), n: sub.length };
             });
+            const cS = getS(2025), pS = getS(2024);
 
-            const cS = getStats(cy), pS = getStats(py);
+            draw('revChart', 'line', mLabels, [
+                { label: '2025 Revenue', data: cS.map(v=>v.r), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.4 },
+                { label: '2024 Revenue', data: pS.map(v=>v.r), borderColor: '#334155', borderDash: [5,5], tension: 0.4 }
+            ], 'Revenue Trend YoY');
 
-            drawChart('revChart', 'line', months, [
-                { label: `${cy} Revenue`, data: cS.map(v=>v.r), borderColor: '#4f46e5', tension: 0.3 },
-                { label: `${py} Revenue`, data: pS.map(v=>v.r), borderColor: '#cbd5e1', borderDash:[5,5], tension: 0.3 }
-            ], 'Revenue Performance (YoY)');
+            draw('cenChart', 'line', mLabels, [
+                { label: '2025 Census', data: cS.map(v=>v.n), borderColor: '#06b6d4', tension: 0.4 },
+                { label: '2024 Census', data: pS.map(v=>v.n), borderColor: '#334155', borderDash: [5,5], tension: 0.4 }
+            ], 'Census Trend YoY');
+        }
 
-            drawChart('cenChart', 'line', months, [
-                { label: `${cy} Census`, data: cS.map(v=>v.n), borderColor: '#06b6d4', tension: 0.3 },
-                { label: `${py} Census`, data: pS.map(v=>v.n), borderColor: '#cbd5e1', borderDash:[5,5], tension: 0.3 }
-            ], 'Patient Census (YoY)');
+        function updateTop10(data) {
+            const grp = (mode) => {
+                const o = {};
+                data.forEach(d => {
+                    const k = d.package_name || 'N/A';
+                    o[k] = (o[k] || 0) + (mode === 'rev' ? d.amt : 1);
+                });
+                const sorted = Object.entries(o).sort((a,b) => b[1]-a[1]).slice(0, 10);
+                return { k: sorted.map(x=>x[0]), v: sorted.map(x=>x[1]) };
+            }
+
+            const rData = grp('rev'), cData = grp('cen');
+
+            draw('topRevChart', 'bar', rData.k, [{ label: 'Revenue ₱', data: rData.v, backgroundColor: '#6366f1' }], '', true);
+            draw('topCenChart', 'bar', cData.k, [{ label: 'Census', data: cData.v, backgroundColor: '#06b6d4' }], '', true);
         }
 
         function updateInfographics(data) {
             const grp = (key) => {
-                const o = {};
-                data.forEach(d => o[d[key]] = (o[d[key]] || 0) + 1);
-                const sorted = Object.entries(o).sort((a,b) => b[1]-a[1]).slice(0, 8);
-                return { k: sorted.map(x => x[0]), v: sorted.map(x => x[1]) };
-            };
+                const o = {}; data.forEach(d => o[d[key]] = (o[d[key]] || 0) + 1);
+                const sorted = Object.entries(o).sort((a,b) => b[1]-a[1]).slice(0, 5);
+                return { k: sorted.map(x=>x[0]), v: sorted.map(x=>x[1]) };
+            }
             const l = grp('location'), g = grp('gender'), a = grp('age_bracket');
-            drawChart('locChart', 'bar', l.k, [{ label: 'Patients', data: l.v, backgroundColor: '#818cf8' }], 'Patient Location');
-            drawChart('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#4f46e5', '#ec4899', '#f59e0b'] }], 'Gender Split');
-            drawChart('ageChart', 'pie', a.k, [{ data: a.v, backgroundColor: ['#10b981', '#f43f5e', '#3b82f6', '#f59e0b', '#8b5cf6'] }], 'Age Brackets');
+            draw('locChart', 'bar', l.k, [{ label: 'Patients', data: l.v, backgroundColor: '#4f46e5' }], 'Top Locations');
+            draw('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#6366f1', '#06b6d4', '#ec4899'] }], 'Gender Split');
+            draw('ageChart', 'pie', a.k, [{ data: a.v, backgroundColor: ['#818cf8', '#22d3ee', '#fb7185', '#fbbf24'] }], 'Age Brackets');
         }
 
-        function updateTable(data) {
-            const body = document.getElementById('dataTableBody');
-            document.getElementById('tableCount').textContent = `${data.length.toLocaleString()} Total Records Found`;
-            body.innerHTML = '';
-            
-            // Sort by date descending and take top 50
-            const displayList = [...data].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 50);
-
-            displayList.forEach(r => {
-                body.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-6 py-3 font-medium text-slate-700">${r.displayDate}</td>
-                        <td class="px-6 py-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px] font-bold uppercase">${r.category}</span></td>
-                        <td class="px-6 py-3 text-slate-600 font-medium">${r.package_name || 'N/A'}</td>
-                        <td class="px-6 py-3 text-slate-500">${r.location}</td>
-                        <td class="px-6 py-3 text-slate-500">${r.gender}</td>
-                        <td class="px-6 py-3 font-bold text-slate-800">₱${r.amt.toLocaleString()}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        function drawChart(id, type, labels, datasets, title) {
+        function draw(id, type, labels, datasets, title, horizontal = false) {
             if (charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
                 type, data: { labels, datasets },
-                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, title: { display: !!title, text: title } } }
+                options: {
+                    indexAxis: horizontal ? 'y' : 'x',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+                        title: { display: !!title, text: title, color: '#f8fafc', font: { weight: 'bold' } }
+                    },
+                    scales: type !== 'doughnut' && type !== 'pie' ? {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    } : {}
+                }
             });
         }
 
