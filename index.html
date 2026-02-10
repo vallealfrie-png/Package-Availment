@@ -9,27 +9,27 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background-color: #0a0a0a; color: #f5f5f5; }
-        .glass-card { background: #111; border: 1px solid #222; border-radius: 16px; }
-        .glow-border { border: 1px solid rgba(99, 102, 241, 0.2); }
-        select { background: #1a1a1a !important; color: white !important; border: 1px solid #333 !important; }
+        body { background-color: #050505; color: #f5f5f5; }
+        .glass-card { background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 16px; }
+        .glow-indigo { border: 1px solid rgba(99, 102, 241, 0.3); }
+        select { background: #111 !important; color: white !important; border: 1px solid #222 !important; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
     </style>
 </head>
 <body class="font-sans antialiased">
 
     <div id="loader" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center">
         <div class="w-48 bg-neutral-900 h-1 mb-4 overflow-hidden rounded-full">
-            <div id="progressBar" class="bg-indigo-600 h-full w-0 shadow-[0_0_15px_#4f46e5]"></div>
+            <div id="progressBar" class="bg-indigo-600 h-full w-0"></div>
         </div>
-        <p class="text-[10px] font-bold tracking-[0.3em] text-neutral-500 uppercase">Synchronizing Records</p>
+        <p class="text-[9px] font-bold tracking-[0.3em] text-neutral-500 uppercase">Analyzing 2026 Data Upload</p>
     </div>
 
     <nav class="border-b border-neutral-900 bg-black/80 backdrop-blur-md px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50">
         <div class="flex items-center gap-3">
-            <div class="h-8 w-1 bg-indigo-600 rounded-full"></div>
-            <h1 class="text-sm font-black uppercase tracking-widest">Package <span class="text-neutral-500">Availment</span></h1>
+            <div class="h-6 w-1 bg-indigo-500 rounded-full"></div>
+            <h1 class="text-sm font-black uppercase tracking-widest">Package <span class="text-neutral-500 font-normal">Availment</span></h1>
         </div>
         <div class="flex gap-2">
             <select id="monthSlicer" class="rounded-lg px-4 py-2 text-xs font-bold outline-none"></select>
@@ -40,25 +40,25 @@
 
     <main class="p-6 max-w-[1600px] mx-auto space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="glass-card glow-border p-6">
-                <p id="labelYear3" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Latest Year</p>
+            <div class="glass-card glow-indigo p-6">
+                <p id="labelYear3" class="text-[9px] font-bold text-indigo-400 uppercase tracking-[0.2em]">Latest Period</p>
                 <h2 id="valYear3" class="text-3xl font-black mt-2">₱0</h2>
-                <p id="cenYear3" class="text-neutral-500 text-[10px] mt-1">0 Patients</p>
+                <p id="cenYear3" class="text-neutral-600 text-[10px] mt-1 italic">Detecting active months...</p>
             </div>
             <div class="glass-card p-6">
-                <p id="labelYear2" class="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Previous Year</p>
+                <p id="labelYear2" class="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em]">Equivalent Prev Period</p>
                 <h2 id="valYear2" class="text-3xl font-black mt-2 text-neutral-400">₱0</h2>
-                <p id="cenYear2" class="text-neutral-500 text-[10px] mt-1">0 Patients</p>
+                <p id="cenYear2" class="text-neutral-600 text-[10px] mt-1 italic">Matching timeline...</p>
             </div>
             <div class="glass-card p-6 flex flex-col">
-                <p class="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-4">Tri-Year Benchmark</p>
-                <div class="flex-grow min-h-[50px]"><canvas id="sparkBarChart"></canvas></div>
-                <div id="sparkLabels" class="flex justify-between mt-2 text-[9px] font-bold text-neutral-600"></div>
+                <p class="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em] mb-4">3-Year Trend (Revenue)</p>
+                <div class="flex-grow min-h-[50px]"><canvas id="sparkLineChart"></canvas></div>
+                <div id="sparkLabels" class="flex justify-between mt-2 text-[9px] font-bold text-neutral-700"></div>
             </div>
             <div class="glass-card p-6 border-l-4 border-indigo-600">
-                <p class="text-[10px] font-black text-neutral-500 uppercase tracking-widest">YoY Variance</p>
+                <p class="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em]">YOY Momentum</p>
                 <h2 id="varRev" class="text-4xl font-black mt-2">0%</h2>
-                <p id="varContext" class="text-[9px] font-bold text-neutral-500 mt-1 uppercase">Latest vs Prev</p>
+                <p id="varContext" class="text-[9px] font-bold text-neutral-500 mt-1 uppercase">Period to Period</p>
             </div>
         </div>
 
@@ -69,19 +69,13 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="glass-card overflow-hidden">
-                <div class="bg-neutral-900/50 px-6 py-4 border-b border-neutral-800 font-black text-[10px] uppercase tracking-widest text-indigo-400">Top 10 Packages (Revenue DESC)</div>
+                <div class="bg-neutral-900/30 px-6 py-4 border-b border-neutral-800 font-bold text-[10px] uppercase tracking-widest text-indigo-400">Top 10 Packages (Revenue DESC)</div>
                 <div id="topRevList" class="p-4 space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar"></div>
             </div>
             <div class="glass-card overflow-hidden">
-                <div class="bg-neutral-900/50 px-6 py-4 border-b border-neutral-800 font-black text-[10px] uppercase tracking-widest text-neutral-400">Top 10 Packages (Census DESC)</div>
+                <div class="bg-neutral-900/30 px-6 py-4 border-b border-neutral-800 font-bold text-[10px] uppercase tracking-widest text-neutral-400">Top 10 Packages (Census DESC)</div>
                 <div id="topCenList" class="p-4 space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar"></div>
             </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
-            <div class="glass-card p-6 h-[250px]"><canvas id="locChart"></canvas></div>
-            <div class="glass-card p-6 h-[250px]"><canvas id="genChart"></canvas></div>
-            <div class="glass-card p-6 h-[250px]"><canvas id="ageChart"></canvas></div>
         </div>
     </main>
 
@@ -90,10 +84,7 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkbGhldWZreGN5dXhvbnR1bnZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjA2ODAsImV4cCI6MjA4MzQzNjY4MH0.BV77ylA7W3H7qd-Y2ty0bZW2KYE3A87uN1rPI1gCZQo';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let masterData = [], charts = {}, maxYear;
-
-        Chart.defaults.color = '#737373';
-        Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+        let masterData = [], charts = {}, maxYear, activeMonthsInMaxYear = [];
 
         async function init() {
             lucide.createIcons();
@@ -112,11 +103,12 @@
             });
 
             maxYear = Math.max(...masterData.map(d => d.y));
+            // Detect which months have data in the latest year (e.g., [0] for Jan)
+            activeMonthsInMaxYear = [...new Set(masterData.filter(d => d.y === maxYear).map(d => d.m))];
+
             document.getElementById('loader').classList.add('hidden');
-            
-            const mEl = document.getElementById('monthSlicer');
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            mEl.innerHTML = `<option value="all">Full Year Comparison</option>` + months.map((m,i)=>`<option value="${i}">${m} Only</option>`).join('');
+            document.getElementById('monthSlicer').innerHTML = `<option value="all">Cumulative Comparison</option>` + months.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
             
             const catEl = document.getElementById('catSlicer');
             [...new Set(masterData.map(d=>d.category))].filter(Boolean).sort().forEach(c => catEl.innerHTML += `<option value="${c}">${c}</option>`);
@@ -131,107 +123,104 @@
             const filtered = masterData.filter(d => (cVal === 'all' || d.category === cVal));
 
             updateCards(mVal, filtered);
-            updateDynamicTrends(mVal, filtered);
+            updateTrends(mVal, filtered);
             updateTopLists(mVal, filtered);
-            updateDemographics(filtered);
         }
 
         function updateCards(mVal, data) {
             const years = [maxYear - 2, maxYear - 1, maxYear];
             const stats = years.map(yr => {
-                const sub = mVal === "all" ? data.filter(d => d.y === yr) : data.filter(d => d.y === yr && d.m === parseInt(mVal));
+                let sub;
+                if (mVal === "all") {
+                    // If Cumulative, only include months that exist in the latest year
+                    sub = data.filter(d => d.y === yr && activeMonthsInMaxYear.includes(d.m));
+                } else {
+                    sub = data.filter(d => d.y === yr && d.m === parseInt(mVal));
+                }
                 return { yr, r: sub.reduce((s,d)=>s+d.amt,0), n: sub.length };
             });
 
-            // Set Card Values
-            document.getElementById('labelYear3').textContent = `Year ${stats[2].yr}`;
+            const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const periodDesc = mVal === "all" 
+                ? `${monthNames[Math.min(...activeMonthsInMaxYear)]}-${monthNames[Math.max(...activeMonthsInMaxYear)]}`
+                : monthNames[parseInt(mVal)];
+
+            document.getElementById('labelYear3').textContent = `${stats[2].yr} (${periodDesc})`;
             document.getElementById('valYear3').textContent = `₱${stats[2].r.toLocaleString()}`;
             document.getElementById('cenYear3').textContent = `${stats[2].n} Patients`;
 
-            document.getElementById('labelYear2').textContent = `Year ${stats[1].yr}`;
+            document.getElementById('labelYear2').textContent = `${stats[1].yr} (${periodDesc})`;
             document.getElementById('valYear2').textContent = `₱${stats[1].r.toLocaleString()}`;
             document.getElementById('cenYear2').textContent = `${stats[1].n} Patients`;
 
-            // Variance
             const diff = stats[1].r ? ((stats[2].r - stats[1].r) / stats[1].r * 100) : 0;
             const vEl = document.getElementById('varRev');
             vEl.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`;
             vEl.className = `text-4xl font-black mt-2 ${diff >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-            document.getElementById('varContext').textContent = `${stats[2].yr} VS ${stats[1].yr}`;
+            document.getElementById('varContext').textContent = `VS ${stats[1].yr} Same Months`;
 
-            // Tri-Year Spark BAR Chart
-            drawSparkBar('sparkBarChart', stats.map(s => s.r));
+            drawSparkLine('sparkLineChart', stats.map(s => s.r));
             document.getElementById('sparkLabels').innerHTML = years.map(y => `<span>${y}</span>`).join('');
         }
 
-        function updateDynamicTrends(mVal, data) {
+        function updateTrends(mVal, data) {
             let labels = [], curSet = [], preSet = [];
+            const yCurrent = maxYear, yPrev = maxYear - 1;
+
             if (mVal === "all") {
                 labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                 labels.forEach((_, i) => {
-                    const c = data.filter(d => d.y === maxYear && d.m === i);
-                    const p = data.filter(d => d.y === (maxYear-1) && d.m === i);
+                    const c = data.filter(d => d.y === yCurrent && d.m === i);
+                    const p = data.filter(d => d.y === yPrev && d.m === i);
                     curSet.push({ r: c.reduce((s,d)=>s+d.amt,0), n: c.length });
                     preSet.push({ r: p.reduce((s,d)=>s+d.amt,0), n: p.length });
                 });
             } else {
                 const m = parseInt(mVal);
-                const days = new Date(maxYear, m + 1, 0).getDate();
+                const days = new Date(yCurrent, m + 1, 0).getDate();
                 for(let i=1; i<=days; i++) {
-                    labels.push(`Day ${i}`);
-                    const c = data.filter(d => d.y === maxYear && d.m === m && d.day === i);
-                    const p = data.filter(d => d.y === (maxYear-1) && d.m === m && d.day === i);
+                    labels.push(`${i}`);
+                    const c = data.filter(d => d.y === yCurrent && d.m === m && d.day === i);
+                    const p = data.filter(d => d.y === yPrev && d.m === m && d.day === i);
                     curSet.push({ r: c.reduce((s,d)=>s+d.amt,0), n: c.length });
                     preSet.push({ r: p.reduce((s,d)=>s+d.amt,0), n: p.length });
                 }
             }
 
             draw('revChart', 'line', labels, [
-                { label: `${maxYear} Revenue`, data: curSet.map(v=>v.r), borderColor: '#6366f1', tension: 0.4 },
-                { label: `${maxYear-1} Revenue`, data: preSet.map(v=>v.r), borderColor: '#333', borderDash: [5,5], tension: 0.4 }
+                { label: `${yCurrent}`, data: curSet.map(v=>v.r), borderColor: '#6366f1', tension: 0.4 },
+                { label: `${yPrev}`, data: preSet.map(v=>v.r), borderColor: '#333', borderDash:[5,5], tension: 0.4 }
             ], 'Revenue Performance');
 
             draw('cenChart', 'line', labels, [
-                { label: `${maxYear} Census`, data: curSet.map(v=>v.n), borderColor: '#06b6d4', tension: 0.4 },
-                { label: `${maxYear-1} Census`, data: preSet.map(v=>v.n), borderColor: '#333', borderDash: [5,5], tension: 0.4 }
-            ], 'Patient Census');
+                { label: `${yCurrent}`, data: curSet.map(v=>v.n), borderColor: '#06b6d4', tension: 0.4 },
+                { label: `${yPrev}`, data: preSet.map(v=>v.n), borderColor: '#333', borderDash:[5,5], tension: 0.4 }
+            ], 'Census Performance');
         }
 
         function updateTopLists(mVal, data) {
-            const currentFiltered = mVal === 'all' ? data.filter(d => d.y === maxYear) : data.filter(d => d.y === maxYear && d.m === parseInt(mVal));
+            const filtered = mVal === 'all' ? data.filter(d => d.y === maxYear) : data.filter(d => d.y === maxYear && d.m === parseInt(mVal));
             const getGrp = (mode) => {
                 const d = {};
-                currentFiltered.forEach(r => { const k = r.package_name || 'N/A'; d[k] = (d[k] || 0) + (mode === 'rev' ? r.amt : 1); });
+                filtered.forEach(r => { const k = r.package_name || 'N/A'; d[k] = (d[k] || 0) + (mode === 'rev' ? r.amt : 1); });
                 return Object.entries(d).sort((a,b)=>b[1]-a[1]).slice(0, 10);
             }
             const build = (id, list, pre) => {
                 document.getElementById(id).innerHTML = list.map(([n,v], i) => `
                     <div class="flex justify-between items-center p-3 rounded-xl bg-neutral-900/40 border border-neutral-800">
                         <span class="text-xs font-bold text-neutral-300 truncate">#${i+1} ${n}</span>
-                        <span class="text-xs font-black ${pre ? 'text-indigo-400' : 'text-cyan-400'}">${pre}${v.toLocaleString()}</span>
+                        <span class="text-xs font-black ${pre ? 'text-indigo-400' : 'text-neutral-500'}">${pre}${v.toLocaleString()}</span>
                     </div>`).join('');
             };
             build('topRevList', getGrp('rev'), '₱');
             build('topCenList', getGrp('cen'), '');
         }
 
-        function updateDemographics(data) {
-            const grp = (k) => {
-                const o = {}; data.forEach(d => o[d[k]] = (o[d[k]] || 0) + 1);
-                const s = Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0, 5);
-                return { k: s.map(x=>x[0]), v: s.map(x=>x[1]) };
-            };
-            const l = grp('location'), g = grp('gender'), a = grp('age_bracket');
-            draw('locChart', 'bar', l.k, [{ label: 'Patients', data: l.v, backgroundColor: '#4f46e5' }], 'Top Locations');
-            draw('genChart', 'doughnut', g.k, [{ data: g.v, backgroundColor: ['#6366f1', '#06b6d4', '#ec4899'] }], 'Gender Split');
-            draw('ageChart', 'pie', a.k, [{ data: a.v, backgroundColor: ['#10b981', '#f43f5e', '#3b82f6', '#f59e0b'] }], 'Age Brackets');
-        }
-
-        function drawSparkBar(id, data) {
+        function drawSparkLine(id, data) {
             if (charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
-                type: 'bar',
-                data: { labels: ['','',''], datasets: [{ data, backgroundColor: ['#222', '#444', '#6366f1'], barThickness: 20, borderRadius: 5 }] },
+                type: 'line',
+                data: { labels: ['','',''], datasets: [{ data, borderColor: '#6366f1', borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#6366f1', tension: 0.4, fill: false }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
             });
         }
@@ -243,7 +232,7 @@
                 options: { 
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, title: { display: !!title, text: title, color: '#f5f5f5' } },
-                    scales: (type==='line'||type==='bar') ? { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } : {}
+                    scales: { y: { grid: { color: 'rgba(255,255,255,0.02)' } }, x: { grid: { display: false } } }
                 }
             });
         }
