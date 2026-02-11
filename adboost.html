@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Boost Performance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; }
+        .glass-card { background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 16px; }
+        .glow-indigo { border: 1px solid rgba(99, 102, 241, 0.2); }
+        select { background: #111 !important; color: white !important; border: 1px solid #222 !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <div id="loader" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center">
+        <div class="w-48 bg-neutral-900 h-1 mb-4 overflow-hidden rounded-full">
+            <div id="progressBar" class="bg-indigo-600 h-full w-0 transition-all duration-300"></div>
+        </div>
+        <p class="text-[10px] font-bold tracking-[0.3em] text-neutral-500 uppercase">Loading Ad Boost Data</p>
+    </div>
+
+    <nav class="border-b border-neutral-900 bg-black/80 backdrop-blur-md px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="h-6 w-1 bg-indigo-500 rounded-full shadow-[0_0_10px_#6366f1]"></div>
+            <h1 class="text-sm font-black uppercase tracking-widest">Ad Boost <span class="text-neutral-500 font-normal">Analytics</span></h1>
+        </div>
+        <div class="flex gap-2">
+            <select id="monthSlicer" class="rounded-lg px-4 py-2 text-xs font-bold outline-none"></select>
+            <select id="nameSlicer" class="rounded-lg px-4 py-2 text-xs font-bold outline-none"><option value="all">All Packages</option></select>
+            <button onclick="resetFilters()" class="bg-neutral-900 hover:bg-neutral-800 text-white px-3 py-2 rounded-lg transition-all"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+        </div>
+    </nav>
+
+    <main class="p-6 max-w-[1600px] mx-auto space-y-6">
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="glass-card p-6 glow-indigo">
+                <p id="labelYear3" class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">Current Period</p>
+                <h2 id="valYear3" class="text-3xl font-black mt-2">₱0</h2>
+                <p id="cenYear3" class="text-neutral-500 text-[11px] font-bold mt-1 uppercase tracking-tighter">0 Census</p>
+            </div>
+            <div class="glass-card p-6">
+                <p id="labelYear2" class="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Previous Period</p>
+                <h2 id="valYear2" class="text-3xl font-black mt-2 text-neutral-400">₱0</h2>
+                <p id="cenYear2" class="text-neutral-500 text-[11px] font-bold mt-1 uppercase tracking-tighter">0 Census</p>
+            </div>
+            <div class="glass-card p-6 border-l-4 border-indigo-600">
+                <p class="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">YoY Variance</p>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <h2 id="varRevPct" class="text-3xl font-black">0%</h2>
+                    <span id="varRevFig" class="text-xs font-bold text-neutral-600 tracking-tighter">₱0</span>
+                </div>
+                <p id="varContext" class="text-[9px] font-bold text-neutral-700 uppercase mt-1">Matched Months</p>
+            </div>
+            <div class="glass-card p-6 flex flex-col justify-between">
+                <p class="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">3-Year Revenue Trend</p>
+                <div class="h-[60px]"><canvas id="sparkLineChart"></canvas></div>
+                <div id="sparkLabels" class="flex justify-between text-[9px] text-neutral-700 font-bold mt-1"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass-card p-6 h-[400px]"><canvas id="revChart"></canvas></div>
+            <div class="glass-card p-6 h-[400px]"><canvas id="cenChart"></canvas></div>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = 'https://edlheufkxcyuxontunvm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkbGhldWZreGN5dXhvbnR1bnZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjA2ODAsImV4cCI6MjA4MzQzNjY4MH0.BV77ylA7W3H7qd-Y2ty0bZW2KYE3A87uN1rPI1gCZQo';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const MONTH_MAP = { "Jan":0, "Feb":1, "Mar":2, "Apr":3, "May":4, "Jun":5, "Jul":6, "Aug":7, "Sep":8, "Oct":9, "Nov":10, "Dec":11 };
+        const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+        let masterData = [], charts = {}, maxYear, activeMonths = [];
+
+        async function init() {
+            lucide.createIcons();
+            const { data, error } = await sb.from('adboost').select('*');
+            if (error) return console.error(error);
+
+            masterData = data.map(r => ({
+                ...r,
+                mIndex: MONTH_MAP[r.month],
+                amt: typeof r.revenue === 'string' ? parseFloat(r.revenue.replace(/[^0-9.-]+/g,"")) : r.revenue,
+                cen: parseInt(r.census) || 0
+            }));
+
+            maxYear = Math.max(...masterData.map(d => d.year));
+            activeMonths = [...new Set(masterData.filter(d => d.year === maxYear).map(d => d.mIndex))];
+
+            document.getElementById('monthSlicer').innerHTML = `<option value="all">Full Comparison</option>` + 
+                MONTH_NAMES.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+            
+            const nameEl = document.getElementById('nameSlicer');
+            [...new Set(masterData.map(d=>d.name))].sort().forEach(n => nameEl.innerHTML += `<option value="${n}">${n}</option>`);
+
+            document.getElementById('loader').classList.add('hidden');
+            ['monthSlicer', 'nameSlicer'].forEach(id => document.getElementById(id).addEventListener('change', render));
+            render();
+        }
+
+        function render() {
+            const mVal = document.getElementById('monthSlicer').value;
+            const nVal = document.getElementById('nameSlicer').value;
+            const filtered = masterData.filter(d => (nVal === 'all' || d.name === nVal));
+
+            updateMetrics(mVal, filtered);
+            updateTrends(mVal, filtered);
+        }
+
+        function updateMetrics(mVal, data) {
+            const years = [maxYear - 2, maxYear - 1, maxYear];
+            const stats = years.map(yr => {
+                const sub = mVal === "all" ? data.filter(d => d.year === yr && activeMonths.includes(d.mIndex)) : data.filter(d => d.year === yr && d.mIndex === parseInt(mVal));
+                return { yr, r: sub.reduce((s,d)=>s+d.amt,0), n: sub.reduce((s,d)=>s+d.cen,0) };
+            });
+
+            const curr = stats[2], prev = stats[1];
+
+            document.getElementById('valYear3').textContent = `₱${curr.r.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+            document.getElementById('cenYear3').textContent = `${curr.n.toLocaleString()} Census (${curr.yr})`;
+            
+            document.getElementById('valYear2').textContent = `₱${prev.r.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+            document.getElementById('cenYear2').textContent = `${prev.n.toLocaleString()} Census (${prev.yr})`;
+
+            const diffR = curr.r - prev.r;
+            const diffPct = prev.r ? (diffR / prev.r * 100) : 0;
+
+            const pEl = document.getElementById('varRevPct');
+            pEl.textContent = `${diffPct >= 0 ? '+' : ''}${diffPct.toFixed(1)}%`;
+            pEl.className = `text-3xl font-black ${diffPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+            document.getElementById('varRevFig').textContent = `${diffR >= 0 ? '+' : '-'} ₱${Math.abs(diffR).toLocaleString()}`;
+            
+            drawSpark('sparkLineChart', stats.map(s => s.r));
+            document.getElementById('sparkLabels').innerHTML = years.map(y => `<span>${y}</span>`).join('');
+        }
+
+        function updateTrends(mVal, data) {
+            let labels = MONTH_NAMES;
+            let curSet = [], preSet = [];
+
+            MONTH_NAMES.forEach((_, i) => {
+                const c = data.find(d => d.year === maxYear && d.mIndex === i);
+                const p = data.find(d => d.year === (maxYear-1) && d.mIndex === i);
+                curSet.push({ r: c ? c.amt : 0, n: c ? c.cen : 0 });
+                preSet.push({ r: p ? p.amt : 0, n: p ? p.cen : 0 });
+            });
+
+            draw('revChart', 'line', labels, [
+                { label: `${maxYear} Revenue`, data: curSet.map(v=>v.r), borderColor: '#6366f1', tension: 0.4 },
+                { label: `${maxYear-1} Revenue`, data: preSet.map(v=>v.r), borderColor: '#333', borderDash:[5,5], tension: 0.4 }
+            ], 'Monthly Revenue Trend');
+
+            draw('cenChart', 'line', labels, [
+                { label: `${maxYear} Census`, data: curSet.map(v=>v.n), borderColor: '#06b6d4', tension: 0.4 },
+                { label: `${maxYear-1} Census`, data: preSet.map(v=>v.n), borderColor: '#333', borderDash:[5,5], tension: 0.4 }
+            ], 'Monthly Census Trend');
+        }
+
+        function drawSpark(id, data) {
+            if (charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type: 'line', data: { labels: ['','',''], datasets: [{ data, borderColor: '#6366f1', borderWidth: 2, pointRadius: 4, tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+            });
+        }
+
+        function draw(id, type, labels, datasets, title) {
+            if (charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type, data: { labels, datasets },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+                        title: { display: true, text: title, color: '#999', font: { size: 12, weight: 'bold' } }
+                    },
+                    scales: { 
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { font: { size: 9 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        function resetFilters() { document.getElementById('monthSlicer').value = 'all'; document.getElementById('nameSlicer').value = 'all'; render(); }
+        init();
+    </script>
+</body>
+</html>
