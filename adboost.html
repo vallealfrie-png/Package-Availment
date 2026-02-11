@@ -9,13 +9,36 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background-color: #050505; color: #e5e5e5; }
+        body { background-color: #050505; color: #e5e5e5; overflow-x: hidden; }
         .glass-card { background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 16px; }
         .glow-indigo { border: 1px solid rgba(99, 102, 241, 0.2); }
         select { background: #111 !important; color: white !important; border: 1px solid #222 !important; }
+        
+        /* Navigation Styling */
         .nav-link { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s; }
         .nav-link:hover { color: #6366f1; }
         .active-link { color: #6366f1; border-bottom: 2px solid #6366f1; }
+
+        /* Animation Effects */
+        #dashboard-content {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide-out {
+            opacity: 0 !important;
+            transform: translateX(-20px) !important;
+        }
+
+        .slide-in {
+            animation: slideInEffect 0.5s forwards;
+        }
+
+        @keyframes slideInEffect {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
     </style>
 </head>
 <body class="font-sans antialiased">
@@ -45,7 +68,7 @@
         </div>
     </nav>
 
-    <main class="p-6 max-w-[1600px] mx-auto space-y-6">
+    <main id="dashboard-content" class="p-6 max-w-[1600px] mx-auto space-y-6">
         
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="glass-card p-6 glow-indigo">
@@ -111,7 +134,23 @@
             [...new Set(masterData.map(d=>d.name))].sort().forEach(n => nameEl.innerHTML += `<option value="${n}">${n}</option>`);
 
             document.getElementById('loader').classList.add('hidden');
-            ['monthSlicer', 'nameSlicer'].forEach(id => document.getElementById(id).addEventListener('change', render));
+
+            // Apply animation trigger to slicers
+            ['monthSlicer', 'nameSlicer'].forEach(id => {
+                document.getElementById(id).addEventListener('change', () => {
+                    const content = document.getElementById('dashboard-content');
+                    content.classList.add('slide-out'); // Start sliding out
+                    
+                    setTimeout(() => {
+                        render(); // Update the data while invisible
+                        content.classList.remove('slide-out');
+                        content.classList.add('slide-in'); // Slide back in with new data
+                        
+                        setTimeout(() => content.classList.remove('slide-in'), 500);
+                    }, 400);
+                });
+            });
+
             render();
         }
 
@@ -124,31 +163,26 @@
             updateTrends(mVal, filtered);
         }
 
+        // ... [Rest of the metric/trend functions remain the same as previous version] ...
         function updateMetrics(mVal, data) {
             const years = [maxYear - 2, maxYear - 1, maxYear];
             const stats = years.map(yr => {
                 const sub = mVal === "all" ? data.filter(d => d.year === yr && activeMonths.includes(d.mIndex)) : data.filter(d => d.year === yr && d.mIndex === parseInt(mVal));
                 return { yr, r: sub.reduce((s,d)=>s+d.amt,0), n: sub.reduce((s,d)=>s+d.cen,0) };
             });
-
             const curr = stats[2], prev = stats[1];
-
             document.getElementById('labelYear3').textContent = `Year ${curr.yr}`;
             document.getElementById('valYear3').textContent = `₱${curr.r.toLocaleString(undefined,{minimumFractionDigits:2})}`;
             document.getElementById('cenYear3').textContent = `${curr.n.toLocaleString()} Census`;
-            
             document.getElementById('labelYear2').textContent = `Year ${prev.yr}`;
             document.getElementById('valYear2').textContent = `₱${prev.r.toLocaleString(undefined,{minimumFractionDigits:2})}`;
             document.getElementById('cenYear2').textContent = `${prev.n.toLocaleString()} Census`;
-
             const diffR = curr.r - prev.r;
             const diffPct = prev.r ? (diffR / prev.r * 100) : 0;
-
             const pEl = document.getElementById('varRevPct');
             pEl.textContent = `${diffPct >= 0 ? '+' : ''}${diffPct.toFixed(1)}%`;
             pEl.className = `text-3xl font-black ${diffPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
             document.getElementById('varRevFig').textContent = `${diffR >= 0 ? '+' : '-'} ₱${Math.abs(diffR).toLocaleString()}`;
-            
             drawSpark('sparkLineChart', stats.map(s => s.r));
             document.getElementById('sparkLabels').innerHTML = years.map(y => `<span>${y}</span>`).join('');
         }
@@ -156,24 +190,17 @@
         function updateTrends(mVal, data) {
             let curSet = [], preSet = [];
             MONTH_NAMES.forEach((_, i) => {
-                const c = data.filter(d => d.year === maxYear && d.mIndex === i).reduce((s,d)=>s+d, {amt:0, cen:0});
-                const p = data.filter(d => d.year === (maxYear-1) && d.mIndex === i).reduce((s,d)=>s+d, {amt:0, cen:0});
-                
-                // Aggregate for charts if multiple packages exist under same month
                 const c_amt = data.filter(d => d.year === maxYear && d.mIndex === i).reduce((s,d)=>s+d.amt,0);
                 const p_amt = data.filter(d => d.year === (maxYear-1) && d.mIndex === i).reduce((s,d)=>s+d.amt,0);
                 const c_cen = data.filter(d => d.year === maxYear && d.mIndex === i).reduce((s,d)=>s+d.cen,0);
                 const p_cen = data.filter(d => d.year === (maxYear-1) && d.mIndex === i).reduce((s,d)=>s+d.cen,0);
-                
                 curSet.push({ r: c_amt, n: c_cen });
                 preSet.push({ r: p_amt, n: p_cen });
             });
-
             draw('revChart', 'line', MONTH_NAMES, [
                 { label: `${maxYear} Revenue`, data: curSet.map(v=>v.r), borderColor: '#6366f1', tension: 0.4 },
                 { label: `${maxYear-1} Revenue`, data: preSet.map(v=>v.r), borderColor: '#333', borderDash:[5,5], tension: 0.4 }
             ], 'Revenue Performance');
-
             draw('cenChart', 'line', MONTH_NAMES, [
                 { label: `${maxYear} Census`, data: curSet.map(v=>v.n), borderColor: '#06b6d4', tension: 0.4 },
                 { label: `${maxYear-1} Census`, data: preSet.map(v=>v.n), borderColor: '#333', borderDash:[5,5], tension: 0.4 }
