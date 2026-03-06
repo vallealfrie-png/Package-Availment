@@ -12,24 +12,25 @@
         /* Base page styling */
         body { background-color: #000; color: #e5e5e5; overflow-x: hidden; margin: 0; }
         
-        /* Background Container - Full Color & Top Aligned */
+        /* Background Container - Resized to fit whole image */
         .dashboard-bg-container {
             background: url('https://i.imgur.com/c1t4xZ1.jpeg'); 
-            background-size: cover;
-            background-position: top center;
+            background-size: 100% 100%; /* This ensures the whole image is visible in the viewport */
+            background-position: center;
             background-attachment: fixed;
+            background-repeat: no-repeat;
             min-height: 100vh;
             width: 100%;
         }
         
-        /* Premium Staggered Glassmorphism */
+        /* Premium Glassmorphism */
         .glass-card { 
-            background: rgba(0, 0, 0, 0.85); 
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            background: rgba(0, 0, 0, 0.82); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1); 
             border-radius: 20px; 
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
         }
 
         /* Collapsable Nav Logic */
@@ -43,20 +44,20 @@
 
         .nav-container:hover {
             width: 95%;
-            max-width: 1100px;
-            height: 64px;
+            max-width: 1000px;
+            height: 60px;
             border-radius: 9999px;
         }
 
         .glass-nav {
             background: rgba(10, 10, 10, 0.7); 
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.1);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
 
-        /* Hide elements when collapsed */
+        /* Nav Content Visibility */
         .nav-content {
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -68,7 +69,6 @@
             transition-delay: 0.2s;
         }
 
-        /* Show Icon when collapsed */
         .nav-trigger {
             position: absolute;
             left: 50%;
@@ -83,7 +83,7 @@
         .glow-indigo { border: 1px solid rgba(99, 102, 241, 0.5); }
         
         select { 
-            background: rgba(20, 20, 20, 0.95) !important; 
+            background: rgba(15, 15, 15, 0.95) !important; 
             color: white !important; 
             border: 1px solid rgba(255, 255, 255, 0.2) !important; 
             appearance: none;
@@ -94,19 +94,17 @@
         .active-link { color: #6366f1; font-weight: 900; }
 
         .slicer-pill {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.65);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Slide Animations for content */
-        #dashboard-content {
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
-        }
-        .slide-out { opacity: 0 !important; transform: translateX(-30px) !important; }
-        .slide-in { animation: slideInEffect 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
-        @keyframes slideInEffect {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
+        /* Animations */
+        #dashboard-content { transition: transform 0.4s ease, opacity 0.4s ease; }
+        .slide-out { opacity: 0 !important; transform: translateY(20px) !important; }
+        .slide-in { animation: slideUpEffect 0.6s ease forwards; }
+        @keyframes slideUpEffect {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -116,49 +114,44 @@
         <div class="w-48 bg-neutral-900 h-1 mb-4 overflow-hidden rounded-full">
             <div id="progressBar" class="bg-indigo-600 h-full w-0 transition-all duration-300"></div>
         </div>
-        <p class="text-[10px] font-bold tracking-[0.3em] text-neutral-500 uppercase">Synchronizing Adboost Data</p>
+        <p class="text-[10px] font-bold tracking-[0.3em] text-neutral-500 uppercase">Synchronizing Adboost</p>
     </div>
 
-    <div class="fixed top-4 left-0 right-0 flex justify-center z-50 px-4">
-        <div class="nav-container glass-nav rounded-full relative group cursor-pointer">
-            
-            <div class="nav-trigger text-indigo-400">
-                <i data-lucide="layout-grid" class="w-6 h-6"></i>
+    <div class="fixed top-6 left-0 right-0 flex justify-center z-50 px-4">
+        <div class="nav-container glass-nav rounded-full relative group cursor-pointer shadow-2xl">
+            <div class="nav-trigger text-white">
+                <i data-lucide="menu" class="w-5 h-5"></i>
             </div>
-
-            <div class="nav-content flex items-center justify-between gap-6 px-4 py-2 w-full h-full">
-                
+            <div class="nav-content flex items-center justify-between gap-6 px-5 py-2 w-full h-full">
                 <div class="flex items-center gap-6 slicer-pill rounded-full px-5 py-2">
                     <div class="flex items-center gap-3">
-                        <div class="h-5 w-1 bg-indigo-500 rounded-full shadow-[0_0_15px_#6366f1]"></div>
-                        <h1 class="text-[11px] font-black uppercase tracking-widest text-white">Ad Boost</h1>
+                        <div class="h-4 w-1 bg-indigo-500 rounded-full shadow-[0_0_10px_#6366f1]"></div>
+                        <h1 class="text-[10px] font-black uppercase tracking-widest text-white">Ad Boost</h1>
                     </div>
-                    <div class="w-px h-5 bg-neutral-800"></div>
-                    <div class="flex gap-5">
+                    <div class="w-px h-4 bg-neutral-800"></div>
+                    <div class="flex gap-4">
                         <a href="index.html" class="nav-link">Dashboard</a>
                         <a href="adboost.html" class="nav-link active-link">Adboost</a>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-2 slicer-pill rounded-full p-1.5">
                     <div class="relative">
                         <select id="monthSlicer" class="rounded-full pl-4 pr-7 py-1.5 text-[10px] font-bold outline-none cursor-pointer"></select>
-                        <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-600 pointer-events-none"></i>
+                        <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-500 pointer-events-none"></i>
                     </div>
                     <div class="relative">
                         <select id="nameSlicer" class="rounded-full pl-4 pr-7 py-1.5 text-[10px] font-bold outline-none cursor-pointer"><option value="all">All Packages</option></select>
-                        <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-600 pointer-events-none"></i>
+                        <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-500 pointer-events-none"></i>
                     </div>
-                    <button onclick="resetFilters()" class="bg-indigo-950/40 hover:bg-indigo-900 border border-indigo-900 text-indigo-400 p-2 rounded-full transition-all active:scale-95">
+                    <button onclick="resetFilters()" class="bg-neutral-900/50 hover:bg-neutral-800 text-white p-2 rounded-full transition-all">
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
                     </button>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <div class="dashboard-bg-container pt-20"> 
+    <div class="dashboard-bg-container pt-24 pb-12"> 
         <main id="dashboard-content" class="p-6 max-w-[1600px] mx-auto space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="glass-card p-6 glow-indigo">
@@ -194,7 +187,6 @@
     </div>
 
     <script>
-        // ... (Script remains exactly the same as the previous version) ...
         const SUPABASE_URL = 'https://edlheufkxcyuxontunvm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkbGhldWZreGN5dXhvbnR1bnZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjA2ODAsImV4cCI6MjA4MzQzNjY4MH0.BV77ylA7W3H7qd-Y2ty0bZW2KYE3A87uN1rPI1gCZQo';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -218,7 +210,7 @@
             maxYear = Math.max(...masterData.map(d => d.year));
             activeMonths = [...new Set(masterData.filter(d => d.year === maxYear).map(d => d.mIndex))];
 
-            document.getElementById('monthSlicer').innerHTML = `<option value="all">Full Comparison</option>` + 
+            document.getElementById('monthSlicer').innerHTML = `<option value="all">Full Year</option>` + 
                 MONTH_NAMES.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
             
             const nameEl = document.getElementById('nameSlicer');
@@ -322,13 +314,13 @@
             });
 
             draw('revChart', 'line', MONTH_NAMES, [
-                { label: `${maxYear} Rev`, data: curSet.map(v=>v.r), borderColor: '#6366f1', tension: 0.4 },
-                { label: `${maxYear-1} Rev`, data: preSet.map(v=>v.r), borderColor: 'rgba(255,255,255,0.4)', borderDash:[5,5], tension: 0.4 }
+                { label: `${maxYear}`, data: curSet.map(v=>v.r), borderColor: '#6366f1', tension: 0.4 },
+                { label: `${maxYear-1}`, data: preSet.map(v=>v.r), borderColor: 'rgba(255,255,255,0.4)', borderDash:[5,5], tension: 0.4 }
             ], 'Revenue Performance');
 
             draw('cenChart', 'line', MONTH_NAMES, [
-                { label: `${maxYear} Census`, data: curSet.map(v=>v.n), borderColor: '#06b6d4', tension: 0.4 },
-                { label: `${maxYear-1} Census`, data: preSet.map(v=>v.n), borderColor: 'rgba(255,255,255,0.4)', borderDash:[5,5], tension: 0.4 }
+                { label: `${maxYear}`, data: curSet.map(v=>v.n), borderColor: '#06b6d4', tension: 0.4 },
+                { label: `${maxYear-1}`, data: preSet.map(v=>v.n), borderColor: 'rgba(255,255,255,0.4)', borderDash:[5,5], tension: 0.4 }
             ], 'Census Performance');
         }
 
@@ -359,9 +351,8 @@
             });
         }
 
-        function resetFilters() { document.getElementById('monthSlicer').value = 'all'; document.getElementById('nameSlicer').value = 'all'; runSequentialAnimation(); }
+        function resetFilters() { document.getElementById('monthSlicer').value = 'all'; document.getElementById('nameSlicer').value = 'all'; render(true); }
         init();
     </script>
 </body>
 </html>
-
